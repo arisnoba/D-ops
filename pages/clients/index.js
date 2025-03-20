@@ -49,55 +49,55 @@ export default function ClientList() {
 
 			<main className="flex-grow container mx-auto py-12 px-4">
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold">클라이언트 관리</h1>
+					<h1 className="text-3xl font-bold dark:text-white">클라이언트 관리</h1>
 				</div>
 
 				{loading ? (
-					<p className="text-center py-4">로딩 중...</p>
+					<p className="text-center py-4 dark:text-gray-300">로딩 중...</p>
 				) : clients.length === 0 ? (
-					<div className="bg-white rounded-lg shadow-md p-8 text-center">
-						<p className="text-gray-500 mb-4">등록된 클라이언트가 없습니다.</p>
-						<p className="text-blue-500">상단 메뉴에서 클라이언트를 등록해보세요</p>
+					<div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-8 text-center">
+						<p className="text-gray-500 dark:text-gray-400 mb-4">등록된 클라이언트가 없습니다.</p>
+						<p className="text-blue-500 dark:text-blue-400">상단 메뉴에서 클라이언트를 등록해보세요</p>
 					</div>
 				) : (
-					<div className="bg-white rounded-lg shadow-md overflow-hidden">
-						<table className="min-w-full divide-y divide-gray-200">
-							<thead className="bg-gray-50">
+					<div className="bg-white dark:bg-dark-card rounded-lg shadow-md overflow-hidden">
+						<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
+							<thead className="bg-gray-50 dark:bg-dark-card/80">
 								<tr>
-									<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 										이름
 									</th>
-									<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 										연락처
 									</th>
-									<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 										등록일
 									</th>
-									<th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+									<th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 										관리
 									</th>
 								</tr>
 							</thead>
-							<tbody className="bg-white divide-y divide-gray-200">
+							<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 								{clients.map(client => (
-									<tr key={client.id} className="hover:bg-gray-50">
+									<tr key={client.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80">
 										<td className="px-6 py-4 whitespace-nowrap">
-											<div className="font-medium text-gray-900">{client.name}</div>
-											{client.description && <div className="text-sm text-gray-500 truncate max-w-xs">{client.description}</div>}
+											<div className="font-medium text-gray-900 dark:text-white">{client.name}</div>
+											{client.description && <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{client.description}</div>}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap">
-											{client.contact_person && <div className="text-sm text-gray-900">{client.contact_person}</div>}
-											{client.contact_email && <div className="text-sm text-gray-500">{client.contact_email}</div>}
+											{client.contact_person && <div className="text-sm text-gray-900 dark:text-white">{client.contact_person}</div>}
+											{client.contact_email && <div className="text-sm text-gray-500 dark:text-gray-400">{client.contact_email}</div>}
 										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(client.created_at).toLocaleDateString()}</td>
+										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(client.created_at).toLocaleDateString()}</td>
 										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 											<Link href={`/clients/${client.id}`}>
-												<a className="text-blue-600 hover:text-blue-900 mr-4">상세</a>
+												<a className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">상세</a>
 											</Link>
 											<Link href={`/clients/${client.id}/edit`}>
-												<a className="text-indigo-600 hover:text-indigo-900 mr-4">수정</a>
+												<a className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4">수정</a>
 											</Link>
-											<button onClick={() => deleteClient(client.id)} className="text-red-600 hover:text-red-900">
+											<button onClick={() => deleteClient(client.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
 												삭제
 											</button>
 										</td>

@@ -23,10 +23,10 @@ export default function Modal({ isOpen, onClose, title, children }) {
 			<div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
 
 			{/* 모달 콘텐츠 */}
-			<div className="bg-white rounded-lg shadow-xl z-10 w-full max-w-2xl mx-4 overflow-hidden">
-				<div className="flex justify-between items-center border-b px-6 py-4">
-					<h2 className="text-xl font-bold">{title}</h2>
-					<button onClick={onClose} className="text-gray-400 hover:text-gray-600 focus:outline-none">
+			<div className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-xl z-10 w-full max-w-2xl mx-4 overflow-hidden">
+				<div className="flex justify-between items-center border-b dark:border-dark-border px-6 py-4">
+					<h2 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h2>
+					<button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none">
 						<svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
 						</svg>

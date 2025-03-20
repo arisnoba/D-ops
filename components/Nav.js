@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
 import Modal from './Modal';
 import ClientForm from './ClientForm';
 import TaskForm from './TaskForm';
 
 export default function Nav() {
 	const router = useRouter();
+	const { user, logout } = useAuth();
 	const [clientModalOpen, setClientModalOpen] = useState(false);
 	const [taskModalOpen, setTaskModalOpen] = useState(false);
 
@@ -33,6 +35,13 @@ export default function Nav() {
 		router.push('/');
 	};
 
+	// 로그아웃 처리
+	const handleLogout = async () => {
+		if (confirm('로그아웃 하시겠습니까?')) {
+			await logout();
+		}
+	};
+
 	return (
 		<>
 			<header className="bg-white shadow-md">
@@ -45,8 +54,23 @@ export default function Nav() {
 							<nav className="mr-6">
 								<ul className="flex space-x-6">
 									<li>
+										<Link href="/dashboard">
+											<a className={`hover:text-blue-600 ${isActive('/dashboard') ? 'text-blue-600 font-medium' : 'text-gray-600'}`}>대시보드</a>
+										</Link>
+									</li>
+									<li>
 										<Link href="/">
-											<a className={`hover:text-blue-600 ${isActive('/') && !isActive('/clients') && !isActive('/tasks') ? 'text-blue-600 font-medium' : 'text-gray-600'}`}>대시보드</a>
+											<a
+												className={`hover:text-blue-600 ${
+													isActive('/') && !isActive('/dashboard') && !isActive('/clients') && !isActive('/tasks') ? 'text-blue-600 font-medium' : 'text-gray-600'
+												}`}>
+												홈
+											</a>
+										</Link>
+									</li>
+									<li>
+										<Link href="/tasks">
+											<a className={`hover:text-blue-600 ${isActive('/tasks') ? 'text-blue-600 font-medium' : 'text-gray-600'}`}>업무</a>
 										</Link>
 									</li>
 									<li>
@@ -63,6 +87,11 @@ export default function Nav() {
 								<button onClick={() => setTaskModalOpen(true)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
 									+ 업무 등록
 								</button>
+								{user && (
+									<button onClick={handleLogout} className="border border-red-500 text-red-500 hover:bg-red-50 font-bold py-2 px-4 rounded-lg transition duration-200 ml-2">
+										로그아웃
+									</button>
+								)}
 							</div>
 						</div>
 					</div>

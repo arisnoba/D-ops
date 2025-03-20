@@ -8,7 +8,8 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	const [description, setDescription] = useState('');
 	const [clientId, setClientId] = useState('');
 	const [category, setCategory] = useState('design'); // design, development, operation
-	const [hours, setHours] = useState('');
+	const [timeValue, setTimeValue] = useState('');
+	const [timeUnit, setTimeUnit] = useState('hour'); // hour, day
 	const [pricePerHour, setPricePerHour] = useState('');
 	const [error, setError] = useState(null);
 
@@ -49,16 +50,28 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 		}
 	};
 
+	// 시간 값을 시간 단위로 변환
+	const convertToHours = () => {
+		if (!timeValue) return 0;
+		const value = parseFloat(timeValue);
+
+		if (timeUnit === 'day') {
+			return value * 8; // 1일 = 8시간
+		}
+		return value;
+	};
+
 	// 총 가격 계산
 	const calculateTotalPrice = () => {
+		const hours = convertToHours();
 		if (!hours || !pricePerHour) return 0;
-		return parseFloat(hours) * parseFloat(pricePerHour);
+		return hours * parseFloat(pricePerHour);
 	};
 
 	async function handleSubmit(e) {
 		e.preventDefault();
 
-		if (!title || !category || !hours || !pricePerHour || !clientId) {
+		if (!title || !category || !timeValue || !pricePerHour || !clientId) {
 			setError('필수 항목을 모두 입력해주세요.');
 			return;
 		}
@@ -67,6 +80,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			setLoading(true);
 			setError(null);
 
+			const hours = convertToHours();
 			const totalPrice = calculateTotalPrice();
 
 			const { data, error } = await supabase.from('tasks').insert([
@@ -75,7 +89,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 					description,
 					client_id: clientId,
 					category,
-					hours: parseFloat(hours),
+					hours: hours,
 					price_per_hour: parseFloat(pricePerHour),
 					price: totalPrice,
 					created_at: new Date(),
@@ -87,7 +101,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			// 폼 초기화
 			setTitle('');
 			setDescription('');
-			setHours('');
+			setTimeValue('');
 
 			// 성공 콜백 호출
 			if (onSuccess) {
@@ -104,33 +118,6 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	return (
 		<form onSubmit={handleSubmit}>
 			{error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>}
-
-			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="title">
-					업무 제목 *
-				</label>
-				<input
-					id="title"
-					type="text"
-					value={title}
-					onChange={e => setTitle(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-					required
-				/>
-			</div>
-
-			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="description">
-					업무 설명
-				</label>
-				<textarea
-					id="description"
-					value={description}
-					onChange={e => setDescription(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-					rows="4"
-				/>
-			</div>
 
 			<div className="mb-6">
 				<label className="block text-gray-700 font-semibold mb-2" htmlFor="clientId">
@@ -173,19 +160,60 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="hours">
-					소요 시간 (시간) *
+				<label className="block text-gray-700 font-semibold mb-2" htmlFor="title">
+					업무 제목 *
 				</label>
 				<input
-					id="hours"
-					type="number"
-					min="0.1"
-					step="0.1"
-					value={hours}
-					onChange={e => setHours(e.target.value)}
+					id="title"
+					type="text"
+					value={title}
+					onChange={e => setTitle(e.target.value)}
 					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 					required
 				/>
+			</div>
+
+			<div className="mb-6">
+				<label className="block text-gray-700 font-semibold mb-2" htmlFor="description">
+					업무 설명
+				</label>
+				<textarea
+					id="description"
+					value={description}
+					onChange={e => setDescription(e.target.value)}
+					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+					rows="4"
+				/>
+			</div>
+
+			<div className="mb-6">
+				<label className="block text-gray-700 font-semibold mb-2">소요 시간 *</label>
+				<div className="grid grid-cols-3 gap-4 items-center">
+					<div className="col-span-2">
+						<input
+							id="timeValue"
+							type="number"
+							min="0.1"
+							step="0.1"
+							value={timeValue}
+							onChange={e => setTimeValue(e.target.value)}
+							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							required
+							placeholder="예: 2.5"
+						/>
+					</div>
+					<div className="flex items-center space-x-4">
+						<label className="inline-flex items-center">
+							<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="hour" checked={timeUnit === 'hour'} onChange={e => setTimeUnit(e.target.value)} />
+							<span className="ml-2">시간</span>
+						</label>
+						<label className="inline-flex items-center">
+							<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="day" checked={timeUnit === 'day'} onChange={e => setTimeUnit(e.target.value)} />
+							<span className="ml-2">일</span>
+						</label>
+					</div>
+				</div>
+				<p className="text-xs text-gray-500 mt-1">{timeUnit === 'day' ? '1일 = 8시간으로 계산됩니다.' : ''}</p>
 			</div>
 
 			<div className="mb-6">
@@ -207,6 +235,11 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			<div className="mb-8 p-4 bg-gray-100 rounded-lg">
 				<h3 className="font-semibold mb-2">총 가격</h3>
 				<p className="text-2xl font-bold text-blue-600">{calculateTotalPrice().toLocaleString()}원</p>
+				<p className="text-xs text-gray-600 mt-1">
+					{timeUnit === 'day'
+						? `${timeValue || 0}일 x 8시간 x ${pricePerHour ? pricePerHour.toLocaleString() : 0}원`
+						: `${timeValue || 0}시간 x ${pricePerHour ? pricePerHour.toLocaleString() : 0}원`}
+				</p>
 			</div>
 
 			<div className="flex justify-between">
