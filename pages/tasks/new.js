@@ -19,8 +19,8 @@ export default function NewTask() {
 
 	const categories = [
 		{ id: 'design', name: '디자인', defaultPrice: 50000 },
-		{ id: 'development', name: '개발', defaultPrice: 70000 },
-		{ id: 'operation', name: '운영', defaultPrice: 40000 },
+		{ id: 'development', name: '개발', defaultPrice: 50000 },
+		{ id: 'operation', name: '운영', defaultPrice: 25000 },
 	];
 
 	useEffect(() => {

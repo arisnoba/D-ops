@@ -143,7 +143,7 @@ export default function TaskDetail() {
 
 			<main className="flex-grow container mx-auto py-12 px-4">
 				<div className="mb-6">
-					<Link href="/">
+					<Link href="/tasks">
 						<a className="text-blue-500 hover:underline flex items-center">
 							<svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

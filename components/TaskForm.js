@@ -7,16 +7,16 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
 	const [clientId, setClientId] = useState('');
-	const [category, setCategory] = useState('design'); // design, development, operation
+	const [category, setCategory] = useState('');
 	const [timeValue, setTimeValue] = useState('');
 	const [timeUnit, setTimeUnit] = useState('hour'); // hour, day
 	const [pricePerHour, setPricePerHour] = useState('');
 	const [error, setError] = useState(null);
 
 	const categories = [
-		{ id: 'design', name: '디자인', defaultPrice: 50000 },
-		{ id: 'development', name: '개발', defaultPrice: 70000 },
-		{ id: 'operation', name: '운영', defaultPrice: 40000 },
+		{ id: 'design', name: '디자인', defaultPrice: 4 },
+		{ id: 'development', name: '개발', defaultPrice: 7 },
+		{ id: 'operation', name: '운영', defaultPrice: 2.5 },
 	];
 
 	useEffect(() => {
@@ -30,9 +30,6 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			if (error) throw error;
 			if (data) {
 				setClients(data);
-				if (data.length > 0) {
-					setClientId(data[0].id);
-				}
 			}
 		} catch (error) {
 			console.error('Error fetching clients:', error.message);
@@ -65,7 +62,8 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	const calculateTotalPrice = () => {
 		const hours = convertToHours();
 		if (!hours || !pricePerHour) return 0;
-		return hours * parseFloat(pricePerHour);
+		// 단가는 만원 단위이므로 10000을 곱해서 원 단위로 변환
+		return hours * parseFloat(pricePerHour) * 10000;
 	};
 
 	async function handleSubmit(e) {
@@ -90,7 +88,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 					client_id: clientId,
 					category,
 					hours: hours,
-					price_per_hour: parseFloat(pricePerHour),
+					price_per_hour: parseFloat(pricePerHour) * 10000, // 데이터베이스에는 원 단위로 저장
 					price: totalPrice,
 					created_at: new Date(),
 				},
@@ -120,13 +118,13 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			{error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>}
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="clientId">
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="clientId">
 					클라이언트 *
 				</label>
 				{clients.length === 0 ? (
 					<div>
 						<p className="text-red-500 mb-2">등록된 클라이언트가 없습니다.</p>
-						<button type="button" onClick={onClientRequired} className="text-blue-500 hover:text-blue-700 font-medium">
+						<button type="button" onClick={onClientRequired} className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
 							+ 새 클라이언트 등록하기
 						</button>
 					</div>
@@ -135,8 +133,9 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 						id="clientId"
 						value={clientId}
 						onChange={e => setClientId(e.target.value)}
-						className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+						className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
 						required>
+						<option value="">선택해주세요</option>
 						{clients.map(client => (
 							<option key={client.id} value={client.id}>
 								{client.name}
@@ -147,20 +146,26 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="category">
-					업무 카테고리 *
-				</label>
-				<select id="category" value={category} onChange={handleCategoryChange} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">업무 카테고리 및 시간당 단가 *</label>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					{categories.map(cat => (
-						<option key={cat.id} value={cat.id}>
-							{cat.name}
-						</option>
+						<label
+							key={cat.id}
+							className={`flex flex-col border dark:border-dark-border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-border/40 transition-all ${
+								category === cat.id ? 'ring-2 ring-blue-500 border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+							}`}>
+							<div className="flex items-center">
+								<input type="radio" name="category" value={cat.id} checked={category === cat.id} onChange={handleCategoryChange} className="form-radio h-4 w-4 text-blue-600" required />
+								<span className="ml-2 text-gray-700 dark:text-gray-200 font-medium">{cat.name}</span>
+							</div>
+							<div className="mt-2 ml-6 text-sm font-medium text-blue-600 dark:text-blue-400">{cat.defaultPrice} 만원/시간</div>
+						</label>
 					))}
-				</select>
+				</div>
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="title">
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="title">
 					업무 제목 *
 				</label>
 				<input
@@ -168,26 +173,26 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 					type="text"
 					value={title}
 					onChange={e => setTitle(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
 					required
 				/>
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="description">
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="description">
 					업무 설명
 				</label>
 				<textarea
 					id="description"
 					value={description}
 					onChange={e => setDescription(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
 					rows="4"
 				/>
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2">소요 시간 *</label>
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">소요 시간 *</label>
 				<div className="grid grid-cols-3 gap-4 items-center">
 					<div className="col-span-2">
 						<input
@@ -197,7 +202,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 							step="0.1"
 							value={timeValue}
 							onChange={e => setTimeValue(e.target.value)}
-							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
 							required
 							placeholder="예: 2.5"
 						/>
@@ -205,45 +210,54 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 					<div className="flex items-center space-x-4">
 						<label className="inline-flex items-center">
 							<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="hour" checked={timeUnit === 'hour'} onChange={e => setTimeUnit(e.target.value)} />
-							<span className="ml-2">시간</span>
+							<span className="ml-2 dark:text-gray-200">시간</span>
 						</label>
 						<label className="inline-flex items-center">
 							<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="day" checked={timeUnit === 'day'} onChange={e => setTimeUnit(e.target.value)} />
-							<span className="ml-2">일</span>
+							<span className="ml-2 dark:text-gray-200">일</span>
 						</label>
 					</div>
 				</div>
-				<p className="text-xs text-gray-500 mt-1">{timeUnit === 'day' ? '1일 = 8시간으로 계산됩니다.' : ''}</p>
+				<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{timeUnit === 'day' ? '1일 = 8시간으로 계산됩니다.' : ''}</p>
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 font-semibold mb-2" htmlFor="pricePerHour">
-					시간당 단가 (원) *
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="pricePerHour">
+					시간당 단가 (만원) *
 				</label>
-				<input
-					id="pricePerHour"
-					type="number"
-					min="1000"
-					step="1000"
-					value={pricePerHour}
-					onChange={e => setPricePerHour(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-					required
-				/>
+				<div className="relative">
+					<input
+						id="pricePerHour"
+						type="number"
+						min="0.1"
+						step="0.1"
+						value={pricePerHour}
+						onChange={e => setPricePerHour(e.target.value)}
+						className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
+						required
+						placeholder="예: 5.5"
+					/>
+					{category && (
+						<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+							선택한 카테고리({categories.find(c => c.id === category)?.name})의 기본 단가: {categories.find(c => c.id === category)?.defaultPrice} 만원
+						</p>
+					)}
+				</div>
 			</div>
 
-			<div className="mb-8 p-4 bg-gray-100 rounded-lg">
-				<h3 className="font-semibold mb-2">총 가격</h3>
-				<p className="text-2xl font-bold text-blue-600">{calculateTotalPrice().toLocaleString()}원</p>
-				<p className="text-xs text-gray-600 mt-1">
-					{timeUnit === 'day'
-						? `${timeValue || 0}일 x 8시간 x ${pricePerHour ? pricePerHour.toLocaleString() : 0}원`
-						: `${timeValue || 0}시간 x ${pricePerHour ? pricePerHour.toLocaleString() : 0}원`}
+			<div className="mb-8 p-4 bg-gray-100 dark:bg-dark-bg/60 rounded-lg">
+				<h3 className="font-semibold mb-2 dark:text-gray-200">총 가격</h3>
+				<p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{calculateTotalPrice().toLocaleString()}원</p>
+				<p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+					{timeUnit === 'day' ? `${timeValue || 0}일 x 8시간 x ${pricePerHour || 0}만원` : `${timeValue || 0}시간 x ${pricePerHour || 0}만원`}
 				</p>
 			</div>
 
 			<div className="flex justify-between">
-				<button type="button" onClick={onCancel} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+				<button
+					type="button"
+					onClick={onCancel}
+					className="px-6 py-2 border border-gray-300 dark:border-dark-border rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border/40 transition duration-200">
 					취소
 				</button>
 				<button

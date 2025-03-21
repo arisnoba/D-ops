@@ -269,7 +269,7 @@ export default function TaskList() {
 											카테고리
 										</th>
 										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-											소요시간
+											시간
 										</th>
 										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 											단가
