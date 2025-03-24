@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 
-export default function SideNav() {
+export default function SideNav({ setClientModalOpen, setTaskModalOpen }) {
 	const router = useRouter();
 	const { user, logout } = useAuth();
 
@@ -108,16 +108,14 @@ export default function SideNav() {
 						<h3 className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">작업</h3>
 					</li>
 					<li>
-						<button
-							onClick={() => router.push('/tasks/new')}
-							className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+						<button onClick={() => setTaskModalOpen(true)} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 							<span className="mr-3 text-dark-accent">➕</span>
 							<span>업무 등록</span>
 						</button>
 					</li>
 					<li>
 						<button
-							onClick={() => router.push('/clients/new')}
+							onClick={() => setClientModalOpen(true)}
 							className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 							<span className="mr-3 text-dark-accent">➕</span>
 							<span>클라이언트 등록</span>
