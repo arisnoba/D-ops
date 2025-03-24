@@ -69,8 +69,32 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	async function handleSubmit(e) {
 		e.preventDefault();
 
+		// 기본 필수 필드 검증
 		if (!title || !category || !timeValue || !pricePerHour || !clientId) {
 			setError('필수 항목을 모두 입력해주세요.');
+			return;
+		}
+
+		// 추가 입력 유효성 검사
+		if (title.length < 2 || title.length > 200) {
+			setError('업무 제목은 2자 이상 200자 이하로 입력해주세요.');
+			return;
+		}
+
+		if (description && description.length > 1000) {
+			setError('업무 설명은 1000자 이하로 입력해주세요.');
+			return;
+		}
+
+		const timeValueNum = parseFloat(timeValue);
+		if (isNaN(timeValueNum) || timeValueNum <= 0 || timeValueNum > 999) {
+			setError('유효한 시간을 입력해주세요 (0보다 크고 999 이하).');
+			return;
+		}
+
+		const pricePerHourNum = parseFloat(pricePerHour);
+		if (isNaN(pricePerHourNum) || pricePerHourNum <= 0 || pricePerHourNum > 1000000) {
+			setError('유효한 시간당 단가를 입력해주세요 (0보다 크고 1,000,000 이하).');
 			return;
 		}
 
@@ -81,18 +105,24 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			const hours = convertToHours();
 			const totalPrice = calculateTotalPrice();
 
-			const { data, error } = await supabase.from('tasks').insert([
-				{
-					title,
-					description,
-					client_id: clientId,
-					category,
-					hours: hours,
-					price_per_hour: parseFloat(pricePerHour) * 10000, // 데이터베이스에는 원 단위로 저장
-					price: totalPrice,
-					created_at: new Date(),
-				},
-			]);
+			// 클라이언트 ID 숫자 형식으로 변환 및 검증
+			const clientIdNum = parseInt(clientId);
+			if (isNaN(clientIdNum)) {
+				throw new Error('유효하지 않은 클라이언트 ID입니다.');
+			}
+
+			const sanitizedData = {
+				title: title.trim(),
+				description: description ? description.trim() : '',
+				client_id: clientIdNum,
+				category,
+				hours: parseFloat(hours.toFixed(2)),
+				price_per_hour: parseFloat((parseFloat(pricePerHour) * 10000).toFixed(0)), // 데이터베이스에는 원 단위로 저장
+				price: parseInt(totalPrice),
+				created_at: new Date(),
+			};
+
+			const { data, error } = await supabase.from('tasks').insert([sanitizedData]);
 
 			if (error) throw error;
 
@@ -107,7 +137,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			}
 		} catch (error) {
 			console.error('Error adding task:', error.message);
-			setError('업무 등록 중 오류가 발생했습니다.');
+			setError('업무 등록 중 오류가 발생했습니다: ' + error.message);
 		} finally {
 			setLoading(false);
 		}
