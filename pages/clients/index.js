@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import ClientDetailDrawer from '../../components/ClientDetailDrawer';
 
 export default function ClientList() {
 	const [loading, setLoading] = useState(false);
 	const [clients, setClients] = useState([]);
+	const [selectedClientId, setSelectedClientId] = useState(null);
+	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
 	useEffect(() => {
 		fetchClients();
@@ -25,7 +28,10 @@ export default function ClientList() {
 		}
 	}
 
-	async function deleteClient(id) {
+	async function deleteClient(id, e) {
+		// 이벤트 전파 중지 (테이블 행 클릭 이벤트 방지)
+		e.stopPropagation();
+
 		try {
 			if (confirm('정말 이 클라이언트를 삭제하시겠습니까?')) {
 				setLoading(true);
@@ -40,6 +46,17 @@ export default function ClientList() {
 			setLoading(false);
 		}
 	}
+
+	const handleClientClick = clientId => {
+		setSelectedClientId(clientId);
+		setIsDrawerOpen(true);
+	};
+
+	const handleCloseDrawer = () => {
+		setIsDrawerOpen(false);
+		// Drawer가 닫힐 때 클라이언트 목록 새로고침
+		fetchClients();
+	};
 
 	return (
 		<>
@@ -80,7 +97,7 @@ export default function ClientList() {
 							</thead>
 							<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 								{clients.map(client => (
-									<tr key={client.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80">
+									<tr key={client.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80 cursor-pointer transition-colors duration-150" onClick={() => handleClientClick(client.id)}>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div className="font-medium text-gray-900 dark:text-white">{client.name}</div>
 											{client.description && <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{client.description}</div>}
@@ -90,14 +107,8 @@ export default function ClientList() {
 											{client.contact_email && <div className="text-sm text-gray-500 dark:text-gray-400">{client.contact_email}</div>}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(client.created_at).toLocaleDateString()}</td>
-										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-											<Link href={`/clients/${client.id}`}>
-												<a className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4">상세</a>
-											</Link>
-											<Link href={`/clients/${client.id}/edit`}>
-												<a className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4">수정</a>
-											</Link>
-											<button onClick={() => deleteClient(client.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={e => e.stopPropagation()}>
+											<button onClick={e => deleteClient(client.id, e)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
 												삭제
 											</button>
 										</td>
@@ -108,6 +119,8 @@ export default function ClientList() {
 					</div>
 				)}
 			</main>
+
+			<ClientDetailDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} clientId={selectedClientId} />
 		</>
 	);
 }

@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import TaskDetailDrawer from '../../components/TaskDetailDrawer';
 
 export default function TaskList() {
 	const [loading, setLoading] = useState(false);
 	const [tasks, setTasks] = useState([]);
 	const [clients, setClients] = useState([]);
 	const [filteredTasks, setFilteredTasks] = useState([]);
+	const [selectedTaskId, setSelectedTaskId] = useState(null);
+	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
 	// 필터링 상태
 	const [selectedClient, setSelectedClient] = useState('all');
@@ -164,6 +167,15 @@ export default function TaskList() {
 
 	const monthlyTotal = calculateMonthlyTotal();
 
+	const handleTaskClick = taskId => {
+		setSelectedTaskId(taskId);
+		setIsDrawerOpen(true);
+	};
+
+	const handleCloseDrawer = () => {
+		setIsDrawerOpen(false);
+	};
+
 	return (
 		<>
 			<Head>
@@ -284,7 +296,7 @@ export default function TaskList() {
 								</thead>
 								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 									{filteredTasks.map(task => (
-										<tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80">
+										<tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80 cursor-pointer transition-colors duration-150" onClick={() => handleTaskClick(task.id)}>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.created_at)}</td>
 											<td className="px-6 py-4 whitespace-nowrap">
 												<div className="text-sm text-gray-900 dark:text-white">{task.clients?.name || '(삭제된 클라이언트)'}</div>
@@ -301,14 +313,7 @@ export default function TaskList() {
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatTimeUnit(task.hours)}</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{task.price_per_hour.toLocaleString()}원</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{task.price.toLocaleString()}원</td>
-											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-												<Link href={`/tasks/${task.id}`}>
-													<a className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">상세</a>
-												</Link>
-												<Link href={`/tasks/${task.id}/edit`}>
-													<a className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">수정</a>
-												</Link>
-											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">{/* 수정 버튼 제거 */}</td>
 										</tr>
 									))}
 								</tbody>
@@ -317,6 +322,8 @@ export default function TaskList() {
 					</div>
 				)}
 			</main>
+
+			<TaskDetailDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} taskId={selectedTaskId} />
 		</>
 	);
 }
