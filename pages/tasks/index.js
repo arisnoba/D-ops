@@ -110,6 +110,20 @@ export default function TaskList() {
 		}
 	};
 
+	// 카테고리별 스타일 클래스
+	const getCategoryStyle = category => {
+		switch (category) {
+			case 'design':
+				return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+			case 'development':
+				return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+			case 'operation':
+				return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+			default:
+				return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+		}
+	};
+
 	// 날짜 포맷
 	const formatDate = dateString => {
 		const date = new Date(dateString);
@@ -296,7 +310,7 @@ export default function TaskList() {
 								</thead>
 								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 									{filteredTasks.map(task => (
-										<tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80 cursor-pointer transition-colors duration-150" onClick={() => handleTaskClick(task.id)}>
+										<tr key={task.id} className="transition duration-100 cursor-pointer transition-colors hover:!bg-alternative" onClick={() => handleTaskClick(task.id)}>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.created_at)}</td>
 											<td className="px-6 py-4 whitespace-nowrap">
 												<div className="text-sm text-gray-900 dark:text-white">{task.clients?.name || '(삭제된 클라이언트)'}</div>
@@ -306,9 +320,7 @@ export default function TaskList() {
 												{task.description && <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{task.description}</div>}
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-													{getCategoryName(task.category)}
-												</span>
+												<span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatTimeUnit(task.hours)}</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{task.price_per_hour.toLocaleString()}원</td>

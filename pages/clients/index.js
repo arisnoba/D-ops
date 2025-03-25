@@ -97,7 +97,7 @@ export default function ClientList() {
 							</thead>
 							<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 								{clients.map(client => (
-									<tr key={client.id} className="hover:bg-gray-50 dark:hover:bg-dark-card/80 cursor-pointer transition-colors duration-150" onClick={() => handleClientClick(client.id)}>
+									<tr key={client.id} className="transition duration-100 cursor-pointer transition-colors hover:!bg-alternative" onClick={() => handleClientClick(client.id)}>
 										<td className="px-6 py-4 whitespace-nowrap">
 											<div className="font-medium text-gray-900 dark:text-white">{client.name}</div>
 											{client.description && <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{client.description}</div>}

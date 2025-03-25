@@ -106,6 +106,20 @@ export default function TaskDetailDrawer({ isOpen, onClose, taskId }) {
 		}
 	};
 
+	// 카테고리별 스타일 클래스
+	const getCategoryStyle = category => {
+		switch (category) {
+			case 'design':
+				return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+			case 'development':
+				return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+			case 'operation':
+				return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+			default:
+				return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+		}
+	};
+
 	// 시간 단위 포맷
 	const formatTimeUnit = hours => {
 		if (hours >= 8) {
@@ -149,7 +163,7 @@ export default function TaskDetailDrawer({ isOpen, onClose, taskId }) {
 					<div>
 						<div className="flex justify-between items-start mb-4">
 							<h1 className="text-2xl font-bold">{task.title}</h1>
-							<span className="bg-blue-100 text-blue-800 rounded-full px-4 py-1 text-sm font-medium">{getCategoryName(task.category)}</span>
+							<span className={`rounded-full px-4 py-1 text-sm font-medium ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 						</div>
 
 						<div className="mb-6 text-sm text-gray-500">
