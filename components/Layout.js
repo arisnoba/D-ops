@@ -27,10 +27,10 @@ export default function Layout({ children }) {
 	};
 
 	return (
-		<div className="flex bg-gray-50 dark:bg-[#121212]">
+		<div className="flex h-screen bg-gray-50 dark:bg-[#121212] overflow-auto">
 			<SideNav setClientModalOpen={setClientModalOpen} setTaskModalOpen={setTaskModalOpen} />
 			<div className="flex-1 ml-48">
-				<main className="min-h-screen">{children}</main>
+				<main className="h-screen ">{children}</main>
 			</div>
 
 			{/* 클라이언트 등록 모달 */}
