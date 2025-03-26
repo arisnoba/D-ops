@@ -166,9 +166,9 @@ export default function TaskDetailDrawer({ isOpen, onClose, taskId }) {
 							<span className={`rounded-full px-4 py-1 text-sm font-medium ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 						</div>
 
-						<div className="mb-6 text-sm text-gray-500">
-							<p>등록일: {formatDate(task.created_at)}</p>
+						<div className="mb-6 text-sm">
 							<p>업무일: {task.task_date ? new Date(task.task_date).toLocaleDateString('ko-KR') : '지정되지 않음'}</p>
+							<p className="text-gray-500 dark:text-gray-400">등록일: {formatDate(task.created_at)}</p>
 							<p>담당자: {task.manager || '지정되지 않음'}</p>
 						</div>
 
@@ -223,10 +223,12 @@ export default function TaskDetailDrawer({ isOpen, onClose, taskId }) {
 						)}
 
 						<div className="flex justify-between mt-6">
-							<button onClick={handleDelete} disabled={deleteLoading} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+							<button onClick={handleDelete} disabled={deleteLoading} className="text-red-800 hover:text-red-600 py-2 px-2 rounded-lg shadow-md transition duration-200">
 								{deleteLoading ? '삭제 중...' : '삭제하기'}
 							</button>
-							<button onClick={handleEdit} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mr-2">
+							<button
+								onClick={handleEdit}
+								className="bg-green-900 hover:bg-green-800 border border-green-700 hover:border-green-600 text-white py-2 px-4 rounded-lg shadow-md transition duration-200 mr-2">
 								수정하기
 							</button>
 						</div>

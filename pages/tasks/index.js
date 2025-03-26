@@ -20,6 +20,17 @@ export default function TaskList() {
 	useEffect(() => {
 		fetchTasks();
 		fetchClients();
+
+		// 업무 등록 완료 이벤트 리스너 추가
+		const handleUpdateTasks = () => {
+			fetchTasks();
+		};
+		window.addEventListener('updateTasks', handleUpdateTasks);
+
+		// 컴포넌트 언마운트 시 이벤트 리스너 제거
+		return () => {
+			window.removeEventListener('updateTasks', handleUpdateTasks);
+		};
 	}, []);
 
 	// 필터링된 작업 목록 업데이트

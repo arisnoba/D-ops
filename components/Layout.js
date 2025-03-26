@@ -22,8 +22,14 @@ export default function Layout({ children }) {
 
 	const handleTaskSuccess = () => {
 		setTaskModalOpen(false);
-		// 업무 등록 후 메인 페이지로 이동
-		router.push('/');
+		// 현재 페이지에서 업데이트만 수행
+		if (router.pathname === '/tasks') {
+			// tasks 페이지에서는 페이지 새로고침 없이 데이터만 업데이트
+			window.dispatchEvent(new CustomEvent('updateTasks'));
+		} else {
+			// 다른 페이지에서는 현재 페이지 새로고침
+			router.replace(router.asPath);
+		}
 	};
 
 	return (
