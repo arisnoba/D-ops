@@ -30,19 +30,7 @@ export default function Layout({ children }) {
 		<div className="flex bg-gray-50 dark:bg-[#121212]">
 			<SideNav setClientModalOpen={setClientModalOpen} setTaskModalOpen={setTaskModalOpen} />
 			<div className="flex-1 ml-48">
-				<header className="h-14 border-b border-gray-200 dark:border-dark-border flex items-center justify-end px-6 bg-white dark:bg-[#181818]">
-					<div className="flex items-center space-x-4">
-						<button onClick={() => setClientModalOpen(true)} className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
-							<span className="mr-3 text-dark-accent">➕</span>
-							<span>클라이언트</span>
-						</button>
-						<button onClick={() => setTaskModalOpen(true)} className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
-							<span className="mr-3 text-dark-accent">➕</span>
-							<span>업무 등록</span>
-						</button>
-					</div>
-				</header>
-				<main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+				<main className="min-h-screen">{children}</main>
 			</div>
 
 			{/* 클라이언트 등록 모달 */}
