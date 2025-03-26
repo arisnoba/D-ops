@@ -1,81 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 html,
 body {
-	padding: 0;
-	margin: 0;
-	font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
-
 a {
-	color: inherit;
-	text-decoration: none;
+  color: inherit;
+  text-decoration: none;
 }
-
 * {
-	box-sizing: border-box;
+  box-sizing: border-box;
 }
-
 /* 다크 모드 전반적인 스타일 */
 .dark body {
-	@apply bg-dark-bg text-gray-100;
+  @apply bg-dark-bg text-gray-100;
 }
-
 .dark h1,
 .dark h2,
 .dark h3,
 .dark h4,
 .dark h5,
 .dark h6 {
-	@apply text-white;
+  @apply text-white;
 }
-
 .dark .bg-white {
-	@apply bg-dark-card;
+  @apply bg-dark-card;
 }
-
 .dark .text-gray-700 {
-	@apply text-gray-200;
+  @apply text-gray-200;
 }
-
 .dark .text-gray-600 {
-	@apply text-gray-300;
+  @apply text-gray-300;
 }
-
 .dark .text-gray-500 {
-	@apply text-gray-400;
+  @apply text-gray-400;
 }
-
 .dark .text-gray-800 {
-	@apply text-white;
+  @apply text-white;
 }
-
 .dark .border-gray-200 {
-	@apply border-dark-border;
+  @apply border-dark-border;
 }
-
 .dark .shadow-md {
-	@apply shadow-gray-900/20;
+  @apply shadow-gray-900/20;
 }
-
 /* 입력 필드 스타일 개선 */
 .dark input,
 .dark textarea,
 .dark select {
-	@apply bg-dark-bg text-gray-100 border-dark-border;
+  @apply bg-dark-bg text-gray-100 border-dark-border;
 }
-
 /* 테이블 스타일 */
 .dark table thead {
-	@apply bg-dark-card text-gray-300;
+  @apply bg-dark-card text-gray-300;
 }
-
 .dark table tbody tr {
-	@apply border-dark-border;
+  @apply border-dark-border;
 }
-
 .dark table tbody tr:hover {
-	@apply bg-dark-border/30;
+  @apply bg-dark-border/30;
+}
+table thead th {
+  text-wrap: nowrap;
 }
