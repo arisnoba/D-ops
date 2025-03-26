@@ -179,6 +179,9 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 				onSuccess();
 			}
 
+			// tasks 페이지에서 업데이트 이벤트 발생
+			window.dispatchEvent(new CustomEvent('updateTasks'));
+
 			// 드로어 닫기
 			onClose();
 		} catch (error) {

@@ -329,7 +329,7 @@ export default function Dashboard() {
 				<title>대시보드 | D-ops</title>
 			</Head>
 
-			<main className="flex-grow container mx-auto py-12 px-4">
+			<main className="flex-grow container mx-auto py-4 px-4">
 				<div className="mb-8">
 					<h1 className="text-3xl font-bold">대시보드</h1>
 					<p className="text-gray-600 dark:text-gray-300 mt-2">프로젝트 및 클라이언트 현황을 한눈에 확인하세요.</p>

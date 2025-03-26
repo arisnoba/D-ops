@@ -11,6 +11,7 @@ export default function TaskList() {
 	const [filteredTasks, setFilteredTasks] = useState([]);
 	const [selectedTaskId, setSelectedTaskId] = useState(null);
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const [error, setError] = useState(null);
 
 	// 필터링 상태
 	const [selectedClient, setSelectedClient] = useState('all');
@@ -41,20 +42,12 @@ export default function TaskList() {
 	async function fetchTasks() {
 		try {
 			setLoading(true);
-			const { data, error } = await supabase
-				.from('tasks')
-				.select(
-					`
-					*,
-					clients:client_id (
-						id,
-						name
-					)
-				`
-				)
-				.order('task_date', { ascending: false });
+			setError(null);
+
+			const { data, error } = await supabase.from('tasks').select('*, clients(name)').order('task_date', { ascending: false }).order('created_at', { ascending: false });
 
 			if (error) throw error;
+
 			if (data) {
 				setTasks(data);
 
@@ -71,6 +64,7 @@ export default function TaskList() {
 			}
 		} catch (error) {
 			console.error('Error fetching tasks:', error.message);
+			setError('업무 목록을 불러오는 중 오류가 발생했습니다.');
 		} finally {
 			setLoading(false);
 		}
@@ -208,62 +202,88 @@ export default function TaskList() {
 
 			<div className="h-full flex flex-col">
 				{/* 필터 영역 */}
-				<div className="flex-none p-4 sticky top-0">
-					<div className="bg-gray-50 dark:bg-dark-bg/60 rounded-md border dark:border-dark-border shadow-sm mb-4 md:mb-8 px-4 py-4">
-						<div className="flex flex-wrap gap-4">
-							<div className="flex-1 min-w-[200px]">
-								<label htmlFor="client-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+				<div className="flex-none p-4 sticky top-0 z-10">
+					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 md:mb-6 p-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							<div>
+								<label htmlFor="client-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
 									클라이언트
 								</label>
-								<select
-									id="client-filter"
-									value={selectedClient}
-									onChange={e => setSelectedClient(e.target.value)}
-									className="block w-full rounded-md border-gray-300 dark:border-dark-border dark:bg-dark-bg shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200">
-									<option value="all">모든 클라이언트</option>
-									{clients.map(client => (
-										<option key={client.id} value={client.id}>
-											{client.name}
-										</option>
-									))}
-								</select>
+								<div className="relative">
+									<select
+										id="client-filter"
+										value={selectedClient}
+										onChange={e => setSelectedClient(e.target.value)}
+										className="block w-full rounded-lg border-gray-300 dark:border-dark-border dark:bg-dark-bg shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
+										<option value="all">모든 클라이언트</option>
+										{clients.map(client => (
+											<option key={client.id} value={client.id}>
+												{client.name}
+											</option>
+										))}
+									</select>
+									<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
+										<svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+										</svg>
+									</div>
+								</div>
 							</div>
-							<div className="flex-1 min-w-[200px]">
-								<label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+							<div>
+								<label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
 									월별 보기
 								</label>
-								<select
-									id="month-filter"
-									value={selectedMonth}
-									onChange={e => setSelectedMonth(e.target.value)}
-									className="block w-full rounded-md border-gray-300 dark:border-dark-border dark:bg-dark-bg shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200">
-									<option value="all">모든 기간</option>
-									{months.map(month => (
-										<option key={month} value={month}>
-											{formatMonth(month)}
-										</option>
-									))}
-								</select>
+								<div className="relative">
+									<select
+										id="month-filter"
+										value={selectedMonth}
+										onChange={e => setSelectedMonth(e.target.value)}
+										className="block w-full rounded-lg border-gray-300 dark:border-dark-border dark:bg-dark-bg shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
+										<option value="all">모든 기간</option>
+										{months.map(month => (
+											<option key={month} value={month}>
+												{formatMonth(month)}
+											</option>
+										))}
+									</select>
+									<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
+										<svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+										</svg>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 
 					{/* 월별 합계 정보 */}
 					{monthlyTotal && (
-						<div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-4 mb-4">
-							<h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{formatMonth(selectedMonth)} 통계</h3>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<p className="text-sm text-gray-600 dark:text-gray-400">총 매출: {monthlyTotal.totalAmount.toLocaleString()}원</p>
-									<p className="text-sm text-gray-600 dark:text-gray-400">총 작업시간: {formatTimeUnit(monthlyTotal.totalHours)}</p>
+						<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm p-6 mb-4">
+							<h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{formatMonth(selectedMonth)} 통계</h3>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								<div className="space-y-3">
+									<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
+										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 매출</p>
+										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{monthlyTotal.totalAmount.toLocaleString()}원</p>
+									</div>
+									<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
+										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 작업시간</p>
+										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{formatTimeUnit(monthlyTotal.totalHours)}</p>
+									</div>
 								</div>
-								<div>
-									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">클라이언트별 통계:</p>
-									{Object.entries(monthlyTotal.clientTotals).map(([clientName, { amount, hours }]) => (
-										<div key={clientName} className="text-sm text-gray-600 dark:text-gray-400">
-											{clientName}: {amount.toLocaleString()}원 ({formatTimeUnit(hours)})
-										</div>
-									))}
+								<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
+									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">클라이언트별 통계</p>
+									<div className="space-y-2">
+										{Object.entries(monthlyTotal.clientTotals).map(([clientName, { amount, hours }]) => (
+											<div key={clientName} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
+												<span className="text-sm font-medium text-gray-700 dark:text-gray-300">{clientName}</span>
+												<div className="text-right">
+													<p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{amount.toLocaleString()}원</p>
+													<p className="text-xs text-gray-500 dark:text-gray-400">{formatTimeUnit(hours)}</p>
+												</div>
+											</div>
+										))}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -272,30 +292,30 @@ export default function TaskList() {
 
 				{/* 테이블 영역 */}
 				<div className="flex-1 overflow-hidden">
-					<div className=" rounded-lg shadow-md h-full flex flex-col">
+					<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm h-full flex flex-col">
 						<div className="overflow-auto">
 							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
 								<thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0">
 									<tr>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											클라이언트
 										</th>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
 											업무
 										</th>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											카테고리
 										</th>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											시간
 										</th>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											단가
 										</th>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											금액
 										</th>
-										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											날짜
 										</th>
 									</tr>
@@ -316,15 +336,15 @@ export default function TaskList() {
 									) : (
 										filteredTasks.map(task => (
 											<tr key={task.id} onClick={() => handleTaskClick(task.id)} className="hover:bg-gray-50 dark:hover:bg-dark-bg/60 cursor-pointer transition-colors duration-150">
-												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
+												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
 												<td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{task.title}</td>
 												<td className="px-6 py-4 whitespace-nowrap">
-													<span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
+													<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatTimeUnit(task.hours)}</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.price_per_hour?.toLocaleString()}원</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{task.price?.toLocaleString()}원</td>
-												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-500">{formatDate(task.task_date || task.created_at)}</td>
+												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.task_date || task.created_at)}</td>
 											</tr>
 										))
 									)}
