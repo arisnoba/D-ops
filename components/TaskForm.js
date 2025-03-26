@@ -16,8 +16,8 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	const [error, setError] = useState(null);
 
 	const categories = [
-		{ id: 'design', name: '디자인', defaultPrice: 4 },
-		{ id: 'development', name: '개발', defaultPrice: 7 },
+		{ id: 'design', name: '디자인', defaultPrice: 3 },
+		{ id: 'development', name: '개발', defaultPrice: 5 },
 		{ id: 'operation', name: '운영', defaultPrice: 2.5 },
 	];
 

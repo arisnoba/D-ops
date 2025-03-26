@@ -337,7 +337,10 @@ export default function TaskList() {
 										filteredTasks.map(task => (
 											<tr key={task.id} onClick={() => handleTaskClick(task.id)} className="hover:bg-gray-50 dark:hover:bg-dark-bg/60 cursor-pointer transition-colors duration-150">
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
-												<td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{task.title}</td>
+												<td className="px-6 py-4">
+													<div className="text-sm text-gray-900 dark:text-gray-100">{task.title}</div>
+													{task.description && <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{task.description}</div>}
+												</td>
 												<td className="px-6 py-4 whitespace-nowrap">
 													<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 												</td>
