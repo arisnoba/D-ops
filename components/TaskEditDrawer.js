@@ -9,10 +9,12 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
 	const [clientId, setClientId] = useState('');
+	const [manager, setManager] = useState('');
 	const [category, setCategory] = useState('');
 	const [timeValue, setTimeValue] = useState('');
 	const [timeUnit, setTimeUnit] = useState('hour'); // hour, day
 	const [pricePerHour, setPricePerHour] = useState('');
+	const [taskDate, setTaskDate] = useState(new Date().toISOString().split('T')[0]);
 	const [error, setError] = useState(null);
 
 	const categories = [
@@ -55,7 +57,9 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 				setTitle(data.title);
 				setDescription(data.description || '');
 				setClientId(data.client_id);
+				setManager(data.manager || '');
 				setCategory(data.category);
+				setTaskDate(data.task_date || new Date().toISOString().split('T')[0]);
 
 				// 시간 값 설정
 				const hours = data.hours;
@@ -158,10 +162,12 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 				title: title.trim(),
 				description: description ? description.trim() : '',
 				client_id: clientIdNum,
+				manager: manager.trim(),
 				category,
 				hours: parseFloat(hours.toFixed(2)),
 				price_per_hour: parseFloat((parseFloat(pricePerHour) * 10000).toFixed(0)), // 데이터베이스에는 원 단위로 저장
 				price: parseInt(totalPrice),
+				task_date: taskDate,
 			};
 
 			const { data, error } = await supabase.from('tasks').update(sanitizedData).eq('id', taskId);
@@ -193,18 +199,11 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 				<form onSubmit={handleSubmit}>
 					{error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>}
 
-					<div className="mb-6">
-						<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="clientId">
-							클라이언트 *
-						</label>
-						{clients.length === 0 ? (
-							<div>
-								<p className="text-red-500 mb-2">등록된 클라이언트가 없습니다.</p>
-								<button type="button" className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
-									+ 새 클라이언트 등록하기
-								</button>
-							</div>
-						) : (
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+						<div>
+							<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="clientId">
+								클라이언트 *
+							</label>
 							<select
 								id="clientId"
 								value={clientId}
@@ -218,7 +217,21 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 									</option>
 								))}
 							</select>
-						)}
+						</div>
+
+						<div>
+							<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="manager">
+								담당자
+							</label>
+							<input
+								id="manager"
+								type="text"
+								value={manager}
+								onChange={e => setManager(e.target.value)}
+								className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
+								placeholder="담당자 이름"
+							/>
+						</div>
 					</div>
 
 					<div className="mb-6">
@@ -318,6 +331,27 @@ export default function TaskEditDrawer({ isOpen, onClose, taskId, onSuccess }) {
 									선택한 카테고리({categories.find(c => c.id === category)?.name})의 기본 단가: {categories.find(c => c.id === category)?.defaultPrice} 만원
 								</p>
 							)}
+						</div>
+					</div>
+
+					<div className="mb-6">
+						<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="taskDate">
+							날짜
+						</label>
+						<div className="relative">
+							<input
+								id="taskDate"
+								type="date"
+								value={taskDate}
+								onChange={e => setTaskDate(e.target.value)}
+								className="appearance-none w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [&::-webkit-calendar-picker-indicator]:opacity-0"
+								onClick={e => e.target.showPicker()}
+							/>
+							<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+								<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+								</svg>
+							</div>
 						</div>
 					</div>
 

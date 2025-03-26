@@ -41,7 +41,7 @@ export default function TaskList() {
 					)
 				`
 				)
-				.order('created_at', { ascending: false });
+				.order('task_date', { ascending: false });
 
 			if (error) throw error;
 			if (data) {
@@ -50,7 +50,7 @@ export default function TaskList() {
 				// 월 목록 추출
 				const monthSet = new Set();
 				data.forEach(task => {
-					const date = new Date(task.created_at);
+					const date = new Date(task.task_date || task.created_at);
 					const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 					monthSet.add(monthYear);
 				});
@@ -87,7 +87,7 @@ export default function TaskList() {
 		// 월별 필터링
 		if (selectedMonth !== 'all') {
 			filtered = filtered.filter(task => {
-				const date = new Date(task.created_at);
+				const date = new Date(task.task_date || task.created_at);
 				const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 				return monthYear === selectedMonth;
 			});
@@ -205,31 +205,45 @@ export default function TaskList() {
 					<div className="flex flex-col md:flex-row gap-4 mb-4">
 						<div className="flex-1">
 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">클라이언트</label>
-							<select
-								value={selectedClient}
-								onChange={e => setSelectedClient(e.target.value)}
-								className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-white">
-								<option value="all">모든 클라이언트</option>
-								{clients.map(client => (
-									<option key={client.id} value={client.id}>
-										{client.name}
-									</option>
-								))}
-							</select>
+							<div className="relative">
+								<select
+									value={selectedClient}
+									onChange={e => setSelectedClient(e.target.value)}
+									className="appearance-none w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-white pr-10">
+									<option value="all">모든 클라이언트</option>
+									{clients.map(client => (
+										<option key={client.id} value={client.id}>
+											{client.name}
+										</option>
+									))}
+								</select>
+								<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+									<svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+										<path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+									</svg>
+								</div>
+							</div>
 						</div>
 						<div className="flex-1">
 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">월별</label>
-							<select
-								value={selectedMonth}
-								onChange={e => setSelectedMonth(e.target.value)}
-								className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-white">
-								<option value="all">모든 기간</option>
-								{months.map(month => (
-									<option key={month} value={month}>
-										{formatMonth(month)}
-									</option>
-								))}
-							</select>
+							<div className="relative">
+								<select
+									value={selectedMonth}
+									onChange={e => setSelectedMonth(e.target.value)}
+									className="appearance-none w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-white pr-10">
+									<option value="all">모든 기간</option>
+									{months.map(month => (
+										<option key={month} value={month}>
+											{formatMonth(month)}
+										</option>
+									))}
+								</select>
+								<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+									<svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+										<path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+									</svg>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -311,7 +325,7 @@ export default function TaskList() {
 								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 									{filteredTasks.map(task => (
 										<tr key={task.id} className="transition duration-100 cursor-pointer transition-colors hover:!bg-alternative" onClick={() => handleTaskClick(task.id)}>
-											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.created_at)}</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{task.task_date ? formatDate(task.task_date) : formatDate(task.created_at)}</td>
 											<td className="px-6 py-4 whitespace-nowrap">
 												<div className="text-sm text-gray-900 dark:text-white">{task.clients?.name || '(삭제된 클라이언트)'}</div>
 											</td>

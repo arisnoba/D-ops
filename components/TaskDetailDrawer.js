@@ -168,6 +168,8 @@ export default function TaskDetailDrawer({ isOpen, onClose, taskId }) {
 
 						<div className="mb-6 text-sm text-gray-500">
 							<p>등록일: {formatDate(task.created_at)}</p>
+							<p>업무일: {task.task_date ? new Date(task.task_date).toLocaleDateString('ko-KR') : '지정되지 않음'}</p>
+							<p>담당자: {task.manager || '지정되지 않음'}</p>
 						</div>
 
 						<div className="mb-6">
