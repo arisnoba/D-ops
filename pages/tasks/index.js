@@ -196,10 +196,10 @@ export default function TaskList() {
 				<title>업무 관리 | D-ops</title>
 			</Head>
 
-			<main className="flex-grow container mx-auto py-12 px-4">
-				<div className="flex justify-between items-center mb-8">
+			<main className="flex-grow container mx-auto p-4">
+				{/* <div className="flex justify-between items-center mb-8">
 					<h1 className="text-3xl font-bold dark:text-white">업무 관리</h1>
-				</div>
+				</div> */}
 
 				<div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-6 mb-8">
 					<div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -317,9 +317,9 @@ export default function TaskList() {
 										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 											금액
 										</th>
-										<th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+										{/* <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 											관리
-										</th>
+										</th> */}
 									</tr>
 								</thead>
 								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
@@ -339,7 +339,7 @@ export default function TaskList() {
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatTimeUnit(task.hours)}</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{task.price_per_hour.toLocaleString()}원</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{task.price.toLocaleString()}원</td>
-											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">{/* 수정 버튼 제거 */}</td>
+											{/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">수정 버튼 제거</td> */}
 										</tr>
 									))}
 								</tbody>

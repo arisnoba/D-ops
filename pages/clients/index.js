@@ -64,10 +64,10 @@ export default function ClientList() {
 				<title>클라이언트 관리 | D-ops</title>
 			</Head>
 
-			<main className="flex-grow container mx-auto py-12 px-4">
-				<div className="mb-8">
+			<main className="flex-grow container mx-auto p-4">
+				{/* <div className="mb-8">
 					<h1 className="text-3xl font-bold dark:text-white">클라이언트 관리</h1>
-				</div>
+				</div> */}
 
 				{loading ? (
 					<p className="text-center py-4 dark:text-gray-300">로딩 중...</p>

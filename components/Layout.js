@@ -42,7 +42,7 @@ export default function Layout({ children }) {
 						</button>
 					</div>
 				</header>
-				<main className="p-6 min-h-[calc(100vh-3.5rem)]">{children}</main>
+				<main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
 			</div>
 
 			{/* 클라이언트 등록 모달 */}
