@@ -304,6 +304,9 @@ export default function TaskList() {
 											업무
 										</th>
 										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+											담당자
+										</th>
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											카테고리
 										</th>
 										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
@@ -323,13 +326,13 @@ export default function TaskList() {
 								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 									{loading ? (
 										<tr>
-											<td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+											<td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
 												로딩 중...
 											</td>
 										</tr>
 									) : filteredTasks.length === 0 ? (
 										<tr>
-											<td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+											<td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
 												데이터가 없습니다
 											</td>
 										</tr>
@@ -341,6 +344,7 @@ export default function TaskList() {
 													<div className="text-sm text-gray-900 dark:text-gray-100">{task.title}</div>
 													{task.description && <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{task.description}</div>}
 												</td>
+												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.manager || '-'}</td>
 												<td className="px-6 py-4 whitespace-nowrap">
 													<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 												</td>
