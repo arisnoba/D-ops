@@ -298,7 +298,7 @@ export default function TaskList() {
 
 			<div className="h-full flex flex-col">
 				{/* 필터 영역 */}
-				<div className="flex-none p-4 sticky top-0 z-10">
+				<div className="flex-none p-4 sticky top-0 z-10" id="filter-area">
 					{/* 일괄 처리 액션 바 */}
 					{isBulkActionsVisible && (
 						<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 p-4">
@@ -361,9 +361,6 @@ export default function TaskList() {
 					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 md:mb-6 p-4">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div>
-								<label htmlFor="client-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-									클라이언트
-								</label>
 								<div className="relative">
 									<select
 										id="client-filter"
@@ -385,9 +382,6 @@ export default function TaskList() {
 								</div>
 							</div>
 							<div>
-								<label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-									월별 보기
-								</label>
 								<div className="relative">
 									<select
 										id="month-filter"
@@ -446,7 +440,7 @@ export default function TaskList() {
 				</div>
 
 				{/* 테이블 영역 */}
-				<div className="flex-1 overflow-hidden">
+				<div className="flex-1 overflow-hidden" id="task-table">
 					<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm h-full flex flex-col">
 						<div className="overflow-auto">
 							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
@@ -456,6 +450,9 @@ export default function TaskList() {
 											<div className="flex items-center">
 												<input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
 											</div>
+										</th>
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+											정산 상태
 										</th>
 										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											클라이언트
@@ -480,9 +477,6 @@ export default function TaskList() {
 										</th>
 										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											날짜
-										</th>
-										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
-											정산 상태
 										</th>
 									</tr>
 								</thead>
@@ -516,6 +510,16 @@ export default function TaskList() {
 														/>
 													</div>
 												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span
+														className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+															task.settlement_status === 'completed'
+																? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+																: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+														}`}>
+														{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
+													</span>
+												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
 												<td className="px-6 py-4">
 													<div className="text-sm text-gray-900 dark:text-gray-100">{task.title}</div>
@@ -529,16 +533,6 @@ export default function TaskList() {
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.price_per_hour?.toLocaleString()}원</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{task.price?.toLocaleString()}원</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.task_date || task.created_at)}</td>
-												<td className="px-6 py-4 whitespace-nowrap">
-													<span
-														className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-															task.settlement_status === 'completed'
-																? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-																: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-														}`}>
-														{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
-													</span>
-												</td>
 											</tr>
 										))
 									)}
