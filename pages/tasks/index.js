@@ -222,36 +222,43 @@ export default function TaskList() {
 	};
 
 	const handleSelectTask = (e, taskId, index) => {
+		// 이벤트 전파 중단
 		e.stopPropagation();
 
+		// 새로운 선택 상태 생성
 		const newSelectedTasks = new Set(selectedTasks);
 
-		if (e.shiftKey && lastSelectedIndex !== null) {
+		if (e.nativeEvent.shiftKey && lastSelectedIndex !== null) {
+			// Shift 키를 사용한 범위 선택
 			const start = Math.min(index, lastSelectedIndex);
 			const end = Math.max(index, lastSelectedIndex);
 
-			// 마지막으로 선택한 항목의 상태를 기준으로 범위 선택
-			const lastSelectedTaskId = filteredTasks[lastSelectedIndex].id;
-			const isLastSelected = selectedTasks.has(lastSelectedTaskId);
+			// 현재 클릭한 항목의 상태를 기준으로 범위 선택
+			const isSelecting = !selectedTasks.has(taskId);
 
-			filteredTasks.slice(start, end + 1).forEach(task => {
-				if (isLastSelected) {
+			// 범위 내의 모든 항목 선택/해제
+			for (let i = start; i <= end; i++) {
+				const task = filteredTasks[i];
+				if (isSelecting) {
 					newSelectedTasks.add(task.id);
 				} else {
 					newSelectedTasks.delete(task.id);
 				}
-			});
+			}
 		} else {
+			// 단일 항목 선택/해제
 			if (selectedTasks.has(taskId)) {
 				newSelectedTasks.delete(taskId);
 			} else {
 				newSelectedTasks.add(taskId);
 			}
+			// 마지막 선택 인덱스 업데이트
 			setLastSelectedIndex(index);
 		}
 
+		// 상태 업데이트
 		setSelectedTasks(newSelectedTasks);
-		setIsAllSelected(newSelectedTasks.size === filteredTasks.length && filteredTasks.length > 0);
+		setIsAllSelected(newSelectedTasks.size === filteredTasks.length);
 		setIsBulkActionsVisible(newSelectedTasks.size > 0);
 	};
 
