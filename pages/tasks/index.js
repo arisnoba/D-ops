@@ -299,66 +299,65 @@ export default function TaskList() {
 			<div className="h-full flex flex-col">
 				{/* 필터 영역 */}
 				<div className="flex-none p-4 sticky top-0 z-10" id="filter-area">
-					{/* 일괄 처리 액션 바 */}
-					{isBulkActionsVisible && (
-						<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 p-4">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center space-x-2">
-									<input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
-									<span className="text-sm text-gray-600 dark:text-gray-300">{selectedTasks.size}개 선택됨</span>
+					<div className=" flex items-center justify-between">
+						<div className="flex items-center">
+							{/* 일괄 처리 액션 바 */}
+							{isBulkActionsVisible && (
+								<div className="flex items-center justify-between mr-5">
+									<div className="flex items-center space-x-2 mr-4">
+										<input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
+										<span className="text-sm text-gray-600 dark:text-gray-300">{selectedTasks.size}개 선택됨</span>
+									</div>
+									<div className="flex items-center space-x-2">
+										<button
+											onClick={() => handleBulkSettlement('completed')}
+											disabled={bulkActionLoading}
+											className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 ease-in-out disabled:opacity-50">
+											정산 완료
+										</button>
+										<button
+											onClick={() => handleBulkSettlement('pending')}
+											disabled={bulkActionLoading}
+											className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition duration-150 ease-in-out disabled:opacity-50">
+											정산 대기
+										</button>
+									</div>
 								</div>
-								<div className="flex items-center space-x-2">
-									<button
-										onClick={() => handleBulkSettlement('completed')}
-										disabled={bulkActionLoading}
-										className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 ease-in-out disabled:opacity-50">
-										정산 완료
-									</button>
-									<button
-										onClick={() => handleBulkSettlement('pending')}
-										disabled={bulkActionLoading}
-										className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition duration-150 ease-in-out disabled:opacity-50">
-										정산 대기
-									</button>
-								</div>
+							)}
+							{/* 정산 상태 필터 버튼 그룹 */}
+							<div className="inline-flex rounded-lg border border-gray-200 dark:border-dark-border">
+								<button
+									onClick={() => setSettlementStatus('all')}
+									className={`px-4 py-2 text-sm font-medium first:rounded-l-lg last:rounded-r-lg border-r dark:border-dark-border transition-colors duration-150 ease-in-out
+									${
+										settlementStatus === 'all'
+											? 'bg-gray-900 text-white dark:bg-gray-600 hover:bg-gray-800 dark:hover:bg-gray-700'
+											: 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-dark-card dark:text-gray-300 dark:hover:bg-dark-bg/60'
+									} focus:z-10`}>
+									전체
+								</button>
+								<button
+									onClick={() => setSettlementStatus('pending')}
+									className={`px-4 py-2 text-sm font-medium border-r dark:border-dark-border transition-colors duration-150 ease-in-out
+									${
+										settlementStatus === 'pending'
+											? 'bg-yellow-600 text-white hover:bg-yellow-700'
+											: 'bg-white text-yellow-700 hover:bg-yellow-50 dark:bg-dark-card dark:text-yellow-300 dark:hover:bg-yellow-900/20'
+									} focus:z-10`}>
+									정산 대기
+								</button>
+								<button
+									onClick={() => setSettlementStatus('completed')}
+									className={`px-4 py-2 text-sm font-medium first:rounded-l-lg last:rounded-r-lg transition-colors duration-150 ease-in-out
+									${
+										settlementStatus === 'completed'
+											? 'bg-green-600 text-white hover:bg-green-700'
+											: 'bg-white text-green-700 hover:bg-green-50 dark:bg-dark-card dark:text-green-300 dark:hover:bg-green-900/20'
+									} focus:z-10`}>
+									정산 완료
+								</button>
 							</div>
 						</div>
-					)}
-
-					{/* 정산 상태 필터 버튼 그룹 추가 */}
-					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 p-4">
-						<div className="flex items-center space-x-2">
-							<button
-								onClick={() => setSettlementStatus('all')}
-								className={`px-4 py-2 rounded-lg transition duration-150 ease-in-out ${
-									settlementStatus === 'all'
-										? 'bg-gray-900 text-white dark:bg-gray-600'
-										: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-dark-bg dark:text-gray-300 dark:hover:bg-dark-bg/60'
-								}`}>
-								전체
-							</button>
-							<button
-								onClick={() => setSettlementStatus('pending')}
-								className={`px-4 py-2 rounded-lg transition duration-150 ease-in-out ${
-									settlementStatus === 'pending'
-										? 'bg-yellow-600 text-white'
-										: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50'
-								}`}>
-								정산 대기
-							</button>
-							<button
-								onClick={() => setSettlementStatus('completed')}
-								className={`px-4 py-2 rounded-lg transition duration-150 ease-in-out ${
-									settlementStatus === 'completed'
-										? 'bg-green-600 text-white'
-										: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50'
-								}`}>
-								정산 완료
-							</button>
-						</div>
-					</div>
-
-					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 md:mb-6 p-4">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div>
 								<div className="relative">
@@ -366,7 +365,7 @@ export default function TaskList() {
 										id="client-filter"
 										value={selectedClient}
 										onChange={e => setSelectedClient(e.target.value)}
-										className="block w-full rounded-lg border-gray-300 dark:border-dark-border dark:bg-dark-bg shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
+										className="block w-full rounded-lg border-gray-300 dark:bg-dark-card shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
 										<option value="all">모든 클라이언트</option>
 										{clients.map(client => (
 											<option key={client.id} value={client.id}>
@@ -387,7 +386,7 @@ export default function TaskList() {
 										id="month-filter"
 										value={selectedMonth}
 										onChange={e => setSelectedMonth(e.target.value)}
-										className="block w-full rounded-lg border-gray-300 dark:border-dark-border dark:bg-dark-bg shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
+										className="block w-full rounded-lg border-gray-300 dark:bg-dark-card shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
 										<option value="all">모든 기간</option>
 										{months.map(month => (
 											<option key={month} value={month}>
