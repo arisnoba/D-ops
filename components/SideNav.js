@@ -117,10 +117,10 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen }) {
 									viewBox="0 0 24 24"
 									fill="none"
 									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="lucide lucide-plus text-foreground">
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="lucide lucide-plus text-foreground">
 									<path d="M5 12h14"></path>
 									<path d="M12 5v14"></path>
 								</svg>
@@ -140,10 +140,10 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen }) {
 									viewBox="0 0 24 24"
 									fill="none"
 									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="lucide lucide-plus text-foreground">
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="lucide lucide-plus text-foreground">
 									<path d="M5 12h14"></path>
 									<path d="M12 5v14"></path>
 								</svg>

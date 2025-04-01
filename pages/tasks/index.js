@@ -12,6 +12,11 @@ export default function TaskList() {
 	const [selectedTaskId, setSelectedTaskId] = useState(null);
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [error, setError] = useState(null);
+	const [selectedTasks, setSelectedTasks] = useState(new Set());
+	const [isAllSelected, setIsAllSelected] = useState(false);
+	const [isBulkActionsVisible, setIsBulkActionsVisible] = useState(false);
+	const [bulkActionLoading, setBulkActionLoading] = useState(false);
+	const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
 
 	// 필터링 상태
 	const [selectedClient, setSelectedClient] = useState('all');
@@ -38,6 +43,14 @@ export default function TaskList() {
 	useEffect(() => {
 		filterTasks();
 	}, [tasks, selectedClient, selectedMonth]);
+
+	// 필터링 시 선택 상태 업데이트
+	useEffect(() => {
+		const newSelectedTasks = new Set(Array.from(selectedTasks).filter(taskId => filteredTasks.some(task => task.id === taskId)));
+		setSelectedTasks(newSelectedTasks);
+		setIsAllSelected(newSelectedTasks.size === filteredTasks.length && filteredTasks.length > 0);
+		setIsBulkActionsVisible(newSelectedTasks.size > 0);
+	}, [filteredTasks]);
 
 	async function fetchTasks() {
 		try {
@@ -194,6 +207,76 @@ export default function TaskList() {
 		setIsDrawerOpen(false);
 	};
 
+	// 일괄 처리 관련 함수들
+	const handleSelectAll = e => {
+		if (e.target.checked) {
+			const allTaskIds = new Set(filteredTasks.map(task => task.id));
+			setSelectedTasks(allTaskIds);
+			setIsAllSelected(true);
+		} else {
+			setSelectedTasks(new Set());
+			setIsAllSelected(false);
+		}
+		setIsBulkActionsVisible(e.target.checked);
+		setLastSelectedIndex(null);
+	};
+
+	const handleSelectTask = (e, taskId, index) => {
+		e.stopPropagation();
+
+		const newSelectedTasks = new Set(selectedTasks);
+
+		if (e.shiftKey && lastSelectedIndex !== null) {
+			const start = Math.min(index, lastSelectedIndex);
+			const end = Math.max(index, lastSelectedIndex);
+
+			// 마지막으로 선택한 항목의 상태를 기준으로 범위 선택
+			const lastSelectedTaskId = filteredTasks[lastSelectedIndex].id;
+			const isLastSelected = selectedTasks.has(lastSelectedTaskId);
+
+			filteredTasks.slice(start, end + 1).forEach(task => {
+				if (isLastSelected) {
+					newSelectedTasks.add(task.id);
+				} else {
+					newSelectedTasks.delete(task.id);
+				}
+			});
+		} else {
+			if (selectedTasks.has(taskId)) {
+				newSelectedTasks.delete(taskId);
+			} else {
+				newSelectedTasks.add(taskId);
+			}
+			setLastSelectedIndex(index);
+		}
+
+		setSelectedTasks(newSelectedTasks);
+		setIsAllSelected(newSelectedTasks.size === filteredTasks.length && filteredTasks.length > 0);
+		setIsBulkActionsVisible(newSelectedTasks.size > 0);
+	};
+
+	const handleBulkSettlement = async status => {
+		if (!selectedTasks.size) return;
+
+		try {
+			setBulkActionLoading(true);
+			const { error } = await supabase.from('tasks').update({ settlement_status: status }).in('id', Array.from(selectedTasks));
+
+			if (error) throw error;
+
+			// 성공적으로 업데이트된 후 데이터 새로고침
+			await fetchTasks();
+			setSelectedTasks(new Set());
+			setIsBulkActionsVisible(false);
+			setIsAllSelected(false);
+		} catch (error) {
+			console.error('Error updating settlement status:', error.message);
+			alert('정산 상태 업데이트 중 오류가 발생했습니다.');
+		} finally {
+			setBulkActionLoading(false);
+		}
+	};
+
 	return (
 		<>
 			<Head>
@@ -203,6 +286,32 @@ export default function TaskList() {
 			<div className="h-full flex flex-col">
 				{/* 필터 영역 */}
 				<div className="flex-none p-4 sticky top-0 z-10">
+					{/* 일괄 처리 액션 바 */}
+					{isBulkActionsVisible && (
+						<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 p-4">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center space-x-2">
+									<input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
+									<span className="text-sm text-gray-600 dark:text-gray-300">{selectedTasks.size}개 선택됨</span>
+								</div>
+								<div className="flex items-center space-x-2">
+									<button
+										onClick={() => handleBulkSettlement('completed')}
+										disabled={bulkActionLoading}
+										className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 ease-in-out disabled:opacity-50">
+										정산 완료
+									</button>
+									<button
+										onClick={() => handleBulkSettlement('pending')}
+										disabled={bulkActionLoading}
+										className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition duration-150 ease-in-out disabled:opacity-50">
+										정산 대기
+									</button>
+								</div>
+							</div>
+						</div>
+					)}
+
 					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 md:mb-6 p-4">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div>
@@ -297,6 +406,11 @@ export default function TaskList() {
 							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
 								<thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0">
 									<tr>
+										<th scope="col" className="px-6 py-4 text-left">
+											<div className="flex items-center">
+												<input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
+											</div>
+										</th>
 										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											클라이언트
 										</th>
@@ -321,24 +435,41 @@ export default function TaskList() {
 										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											날짜
 										</th>
+										<th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+											정산 상태
+										</th>
 									</tr>
 								</thead>
 								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
 									{loading ? (
 										<tr>
-											<td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+											<td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
 												로딩 중...
 											</td>
 										</tr>
 									) : filteredTasks.length === 0 ? (
 										<tr>
-											<td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+											<td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
 												데이터가 없습니다
 											</td>
 										</tr>
 									) : (
-										filteredTasks.map(task => (
-											<tr key={task.id} onClick={() => handleTaskClick(task.id)} className="hover:bg-gray-50 dark:hover:bg-dark-bg/60 cursor-pointer transition-colors duration-150">
+										filteredTasks.map((task, index) => (
+											<tr
+												key={task.id}
+												onClick={() => handleTaskClick(task.id)}
+												className={`hover:bg-gray-50 dark:hover:bg-dark-bg/60 cursor-pointer transition-colors duration-150
+													${task.settlement_status === 'completed' ? 'opacity-60' : ''}`}>
+												<td className="px-6 py-4" onClick={e => e.stopPropagation()}>
+													<div className="flex items-center">
+														<input
+															type="checkbox"
+															checked={selectedTasks.has(task.id)}
+															onChange={e => handleSelectTask(e, task.id, index)}
+															className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+														/>
+													</div>
+												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
 												<td className="px-6 py-4">
 													<div className="text-sm text-gray-900 dark:text-gray-100">{task.title}</div>
@@ -352,6 +483,16 @@ export default function TaskList() {
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.price_per_hour?.toLocaleString()}원</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{task.price?.toLocaleString()}원</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.task_date || task.created_at)}</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span
+														className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+															task.settlement_status === 'completed'
+																? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+																: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+														}`}>
+														{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
+													</span>
+												</td>
 											</tr>
 										))
 									)}
