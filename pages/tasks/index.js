@@ -22,6 +22,7 @@ export default function TaskList() {
 	const [selectedClient, setSelectedClient] = useState('all');
 	const [selectedMonth, setSelectedMonth] = useState('all');
 	const [months, setMonths] = useState([]);
+	const [settlementStatus, setSettlementStatus] = useState('pending');
 
 	useEffect(() => {
 		fetchTasks();
@@ -42,7 +43,7 @@ export default function TaskList() {
 	// 필터링된 작업 목록 업데이트
 	useEffect(() => {
 		filterTasks();
-	}, [tasks, selectedClient, selectedMonth]);
+	}, [tasks, selectedClient, selectedMonth, settlementStatus]);
 
 	// 필터링 시 선택 상태 업데이트
 	useEffect(() => {
@@ -109,6 +110,11 @@ export default function TaskList() {
 				const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 				return monthYear === selectedMonth;
 			});
+		}
+
+		// 정산 상태 필터링
+		if (settlementStatus !== 'all') {
+			filtered = filtered.filter(task => task.settlement_status === settlementStatus);
 		}
 
 		setFilteredTasks(filtered);
@@ -318,6 +324,39 @@ export default function TaskList() {
 							</div>
 						</div>
 					)}
+
+					{/* 정산 상태 필터 버튼 그룹 추가 */}
+					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 p-4">
+						<div className="flex items-center space-x-2">
+							<button
+								onClick={() => setSettlementStatus('all')}
+								className={`px-4 py-2 rounded-lg transition duration-150 ease-in-out ${
+									settlementStatus === 'all'
+										? 'bg-gray-900 text-white dark:bg-gray-600'
+										: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-dark-bg dark:text-gray-300 dark:hover:bg-dark-bg/60'
+								}`}>
+								전체
+							</button>
+							<button
+								onClick={() => setSettlementStatus('pending')}
+								className={`px-4 py-2 rounded-lg transition duration-150 ease-in-out ${
+									settlementStatus === 'pending'
+										? 'bg-yellow-600 text-white'
+										: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50'
+								}`}>
+								정산 대기
+							</button>
+							<button
+								onClick={() => setSettlementStatus('completed')}
+								className={`px-4 py-2 rounded-lg transition duration-150 ease-in-out ${
+									settlementStatus === 'completed'
+										? 'bg-green-600 text-white'
+										: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50'
+								}`}>
+								정산 완료
+							</button>
+						</div>
+					</div>
 
 					<div className="bg-white dark:bg-dark-card rounded-lg border dark:border-dark-border shadow-sm mb-4 md:mb-6 p-4">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
