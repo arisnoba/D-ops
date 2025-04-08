@@ -155,9 +155,6 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 				<div>
-					<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="clientId">
-						클라이언트 *
-					</label>
 					{clients.length === 0 ? (
 						<div>
 							<p className="text-red-500 mb-2">등록된 클라이언트가 없습니다.</p>
@@ -172,7 +169,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 							onChange={e => setClientId(e.target.value)}
 							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
 							required>
-							<option value="">선택해주세요</option>
+							<option value="">클라이언트 선택</option>
 							{clients.map(client => (
 								<option key={client.id} value={client.id}>
 									{client.name}
@@ -181,18 +178,14 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 						</select>
 					)}
 				</div>
-
 				<div>
-					<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="manager">
-						담당자
-					</label>
 					<input
 						id="manager"
 						type="text"
 						value={manager}
 						onChange={e => setManager(e.target.value)}
 						className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-						placeholder="담당자 이름"
+						placeholder="시월 담당자, 구분은 콤마로 구분"
 					/>
 				</div>
 			</div>
@@ -234,7 +227,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 					value={description}
 					onChange={e => setDescription(e.target.value)}
 					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-					rows="5"
+					rows="6"
 					placeholder={`업무 설명을 입력해주세요.\n \n$ 중요하거나 업무 비중이 높은(돈되는) 업무는 앞에 '$'표기를 해서 표기\n$$ 존나 중요한 업무\n- 일반 업무는 '-' 표기로 구분해주세요.`}
 				/>
 			</div>

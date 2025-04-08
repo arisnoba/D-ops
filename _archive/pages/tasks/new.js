@@ -65,6 +65,17 @@ export default function NewTask() {
 		return hoursValue * parseFloat(pricePerHour);
 	};
 
+	// handleCategoryChange 함수 추가
+	const handleCategoryChange = e => {
+		const selectedCategory = e.target.value;
+		setCategory(selectedCategory);
+
+		const categoryInfo = categories.find(cat => cat.id === selectedCategory);
+		if (categoryInfo) {
+			setPricePerHour(categoryInfo.defaultPrice);
+		}
+	};
+
 	async function handleSubmit(e) {
 		e.preventDefault();
 
@@ -193,27 +204,28 @@ export default function NewTask() {
 					</div>
 
 					<div className="mb-6">
-						<label className="block text-gray-700 font-semibold mb-2" htmlFor="category">
-							업무 카테고리 *
-						</label>
-						<select
-							id="category"
-							value={category}
-							onChange={e => setCategory(e.target.value)}
-							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-							required>
+						<label className="block text-gray-700 font-semibold mb-2">업무 카테고리 및 시간당 단가 *</label>
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 							{categories.map(cat => (
-								<option key={cat.id} value={cat.id}>
-									{cat.name}
-								</option>
+								<label
+									key={cat.id}
+									className={`flex flex-col border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-all ${
+										category === cat.id ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50' : ''
+									}`}>
+									<div className="flex items-center">
+										<input type="radio" name="category" value={cat.id} checked={category === cat.id} onChange={handleCategoryChange} className="form-radio h-4 w-4 text-blue-600" />
+										<span className="ml-2 text-gray-700 font-medium">{cat.name}</span>
+									</div>
+									<div className="mt-1 ml-6 text-sm font-medium text-blue-600">{cat.defaultPrice.toLocaleString()}원/시간</div>
+								</label>
 							))}
-						</select>
+						</div>
 					</div>
 
 					<div className="mb-6">
 						<label className="block text-gray-700 font-semibold mb-2">소요 시간 *</label>
-						<div className="grid grid-cols-3 gap-4 items-center">
-							<div className="col-span-2">
+						<div className="flex space-x-3 items-center">
+							<div className="flex-1">
 								<input
 									id="timeValue"
 									type="number"
@@ -223,34 +235,42 @@ export default function NewTask() {
 									onChange={e => setTimeValue(e.target.value)}
 									className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 									required
+									placeholder="예: 2.5"
 								/>
 							</div>
-							<div className="flex items-center space-x-4">
+							<div className="flex items-center space-x-3 whitespace-nowrap">
 								<label className="inline-flex items-center">
 									<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="hour" checked={timeUnit === 'hour'} onChange={e => setTimeUnit(e.target.value)} />
-									<span className="ml-2">시간</span>
+									<span className="ml-1 text-sm">시간</span>
 								</label>
 								<label className="inline-flex items-center">
 									<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="day" checked={timeUnit === 'day'} onChange={e => setTimeUnit(e.target.value)} />
-									<span className="ml-2">일</span>
+									<span className="ml-1 text-sm">일</span>
 								</label>
 							</div>
 						</div>
-						{timeValue && <div className="mt-2 text-sm text-gray-600">{formatTimeUnit(timeValue, timeUnit)}</div>}
+						{timeValue && <div className="mt-1 text-sm text-gray-600">{formatTimeUnit(timeValue, timeUnit)}</div>}
 					</div>
 
 					<div className="mb-6">
 						<label className="block text-gray-700 font-semibold mb-2" htmlFor="pricePerHour">
 							시간당 단가 (원) *
 						</label>
-						<input
-							id="pricePerHour"
-							type="number"
-							value={pricePerHour}
-							onChange={e => setPricePerHour(e.target.value)}
-							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-							required
-						/>
+						<div className="relative">
+							<input
+								id="pricePerHour"
+								type="number"
+								value={pricePerHour}
+								onChange={e => setPricePerHour(e.target.value)}
+								className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								required
+							/>
+							{category && (
+								<p className="text-xs text-gray-500 mt-1">
+									선택한 카테고리({categories.find(c => c.id === category)?.name})의 기본 단가: {categories.find(c => c.id === category)?.defaultPrice.toLocaleString()}원
+								</p>
+							)}
+						</div>
 					</div>
 
 					<div className="mb-6 bg-blue-50 p-4 rounded-lg">
