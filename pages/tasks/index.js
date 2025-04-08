@@ -511,7 +511,7 @@ export default function TaskList() {
 					<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm h-full flex flex-col">
 						<div className="overflow-auto">
 							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
-								<thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0">
+								<thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0 z-10">
 									<tr>
 										<th scope="col" className="px-6 py-4 text-left">
 											<div className="flex items-center">

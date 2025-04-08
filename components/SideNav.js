@@ -16,7 +16,7 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen }) {
 
 	return (
 		<div className="w-48 h-screen fixed left-0 top-0 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-dark-border">
-			<div className="p-4 border-b border-gray-200 dark:border-dark-border">
+			<div className="p-4 border-b border-gray-200 dark:border-dark-border flex items-center" style={{ height: '72px' }}>
 				<h1 className="text-xl font-bold text-gray-800 dark:text-white">D:OPS</h1>
 			</div>
 
