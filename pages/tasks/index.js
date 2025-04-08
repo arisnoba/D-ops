@@ -430,33 +430,40 @@ export default function TaskList() {
 
 					{/* 월별 합계 정보 - 수정된 부분 */}
 					{monthlyTotal && (
-						<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm p-6 mb-4">
+						<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm p-4 mt-4">
 							<h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
 								{selectedMonth !== 'all' ? formatMonth(selectedMonth) : ''}
 								{selectedClient !== 'all' ? clients.find(c => c.id.toString() === selectedClient)?.name : '전체'} 통계
 							</h3>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div className="space-y-3">
-									<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
-										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 매출</p>
-										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{monthlyTotal.totalAmount.toLocaleString()}원</p>
-									</div>
-									<div className="grid grid-cols-2 gap-3">
-										<div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="rounded-lg overflow-hidden">
+									{settlementStatus === 'all' && (
+										<div className="bg-gray-50 dark:bg-dark-bg  p-4">
+											<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 매출</p>
+											<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{monthlyTotal.totalAmount.toLocaleString()}원</p>
+										</div>
+									)}
+
+									{(settlementStatus === 'all' || settlementStatus === 'pending') && (
+										<div className={`${settlementStatus === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-yellow-50/70 dark:bg-yellow-900/10'}  p-4`}>
 											<p className="text-sm text-yellow-600 dark:text-yellow-400 mb-1">정산 대기</p>
 											<p className="text-xl font-semibold text-yellow-700 dark:text-yellow-300">{monthlyTotal.pendingAmount.toLocaleString()}원</p>
 										</div>
-										<div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+									)}
+
+									{(settlementStatus === 'all' || settlementStatus === 'completed') && (
+										<div className={`${settlementStatus === 'completed' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-green-50/70 dark:bg-green-900/10'}  p-4`}>
 											<p className="text-sm text-green-600 dark:text-green-400 mb-1">정산 완료</p>
 											<p className="text-xl font-semibold text-green-700 dark:text-green-300">{monthlyTotal.completedAmount.toLocaleString()}원</p>
 										</div>
-									</div>
-									<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
+									)}
+
+									<div className="bg-gray-50 dark:bg-dark-bg  p-4">
 										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 작업시간</p>
 										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{formatTimeUnit(monthlyTotal.totalHours)}</p>
 									</div>
 								</div>
-								<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
+								<div className="bg-gray-50 dark:bg-dark-bg  p-4">
 									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">담당자별 수익률</p>
 									<div className="space-y-2">
 										{Object.entries(monthlyTotal.managerTotals).map(([manager, { amount, hours }]) => (
