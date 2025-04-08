@@ -277,28 +277,32 @@ export default function Dashboard() {
 		setMonthlyTrend(chartData);
 	}
 
-	// 카테고리별 차트 데이터
+	// 카테고리별 차트 데이터를 담당자별 차트 데이터로 변경
 	function processCategoryData(filteredTasks) {
-		// 카테고리별 금액
-		const categoryRevenue = {
-			design: 0,
-			development: 0,
-			operation: 0,
-		};
+		// 담당자별 금액
+		const managerRevenue = {};
 
 		filteredTasks.forEach(task => {
-			if (categoryRevenue[task.category] !== undefined) {
-				categoryRevenue[task.category] += task.price;
+			const manager = task.manager || '담당자 미지정';
+			if (!managerRevenue[manager]) {
+				managerRevenue[manager] = 0;
 			}
+			managerRevenue[manager] += task.price || 0;
 		});
 
+		// 금액이 높은 순서대로 정렬
+		const sortedManagers = Object.keys(managerRevenue).sort((a, b) => managerRevenue[b] - managerRevenue[a]);
+
+		// 색상 생성
+		const colors = generateColors(sortedManagers.length);
+
 		const chartData = {
-			labels: ['디자인', '개발', '운영'],
+			labels: sortedManagers,
 			datasets: [
 				{
-					data: [categoryRevenue.design, categoryRevenue.development, categoryRevenue.operation],
-					backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)'],
-					borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+					data: sortedManagers.map(manager => managerRevenue[manager]),
+					backgroundColor: colors.backgroundColor,
+					borderColor: colors.borderColor,
 					borderWidth: 1,
 				},
 			],
@@ -532,7 +536,7 @@ export default function Dashboard() {
 										</div>
 									</div>
 									<div>
-										<h2 className="text-xl font-semibold mb-4 dark:text-white">카테고리별 수익</h2>
+										<h2 className="text-xl font-semibold mb-4 dark:text-white">담당자별 수익</h2>
 										<div className="h-80 flex justify-center items-center">
 											{categoryData && (
 												<Pie

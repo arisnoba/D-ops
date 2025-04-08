@@ -216,10 +216,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 				</div>
 			</div>
 
-			<div className="mb-6">
-				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="title">
-					업무 제목 *
-				</label>
+			<div className="mb-2">
 				<input
 					id="title"
 					type="text"
@@ -227,19 +224,18 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 					onChange={e => setTitle(e.target.value)}
 					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
 					required
+					placeholder="(필수) 업무 제목을 입력해주세요."
 				/>
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="description">
-					업무 설명
-				</label>
 				<textarea
 					id="description"
 					value={description}
 					onChange={e => setDescription(e.target.value)}
 					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-					rows="4"
+					rows="5"
+					placeholder={`업무 설명을 입력해주세요.\n$ 중요하거나 업무 비중이 높은(돈되는) 업무는 앞에 '$'표기를 해서 표기\n$$ 존나 중요한 업무\n- 일반 업무는 '-' 표기로 구분해주세요.`}
 				/>
 			</div>
 

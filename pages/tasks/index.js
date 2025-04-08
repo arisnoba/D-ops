@@ -17,6 +17,8 @@ export default function TaskList() {
 	const [isBulkActionsVisible, setIsBulkActionsVisible] = useState(false);
 	const [bulkActionLoading, setBulkActionLoading] = useState(false);
 	const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
+	const [hoveredTaskId, setHoveredTaskId] = useState(null);
+	const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
 	// 필터링 상태
 	const [selectedClient, setSelectedClient] = useState('all');
@@ -179,27 +181,44 @@ export default function TaskList() {
 		return `${year}년 ${month}월`;
 	};
 
-	// 월별 합계 계산
+	// 월별 합계 계산 함수 수정
 	const calculateMonthlyTotal = () => {
-		if (selectedMonth === 'all') return null;
+		// 선택된 클라이언트나 기간이 없으면 null 반환
+		if (selectedClient === 'all' && selectedMonth === 'all') return null;
 
 		let totalAmount = 0;
 		let totalHours = 0;
-		const clientTotals = {};
+		let pendingAmount = 0; // 정산 대기 금액
+		let completedAmount = 0; // 정산 완료 금액
+		const managerTotals = {}; // 담당자별 통계
 
 		filteredTasks.forEach(task => {
-			totalAmount += task.price;
-			totalHours += task.hours;
+			totalAmount += task.price || 0;
+			totalHours += task.hours || 0;
 
-			// 클라이언트별 합계
-			if (!clientTotals[task.clients.name]) {
-				clientTotals[task.clients.name] = { amount: 0, hours: 0 };
+			// 정산 상태별 금액
+			if (task.settlement_status === 'pending') {
+				pendingAmount += task.price || 0;
+			} else if (task.settlement_status === 'completed') {
+				completedAmount += task.price || 0;
 			}
-			clientTotals[task.clients.name].amount += task.price;
-			clientTotals[task.clients.name].hours += task.hours;
+
+			// 담당자별 통계
+			const manager = task.manager || '담당자 미지정';
+			if (!managerTotals[manager]) {
+				managerTotals[manager] = { amount: 0, hours: 0 };
+			}
+			managerTotals[manager].amount += task.price || 0;
+			managerTotals[manager].hours += task.hours || 0;
 		});
 
-		return { totalAmount, totalHours, clientTotals };
+		return {
+			totalAmount,
+			totalHours,
+			pendingAmount,
+			completedAmount,
+			managerTotals,
+		};
 	};
 
 	const monthlyTotal = calculateMonthlyTotal();
@@ -288,6 +307,11 @@ export default function TaskList() {
 		} finally {
 			setBulkActionLoading(false);
 		}
+	};
+
+	// 마우스 위치 갱신 함수
+	const handleMouseMove = e => {
+		setMousePosition({ x: e.clientX, y: e.clientY });
 	};
 
 	return (
@@ -404,15 +428,28 @@ export default function TaskList() {
 						</div>
 					</div>
 
-					{/* 월별 합계 정보 */}
+					{/* 월별 합계 정보 - 수정된 부분 */}
 					{monthlyTotal && (
 						<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm p-6 mb-4">
-							<h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{formatMonth(selectedMonth)} 통계</h3>
+							<h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+								{selectedMonth !== 'all' ? formatMonth(selectedMonth) : ''}
+								{selectedClient !== 'all' ? clients.find(c => c.id.toString() === selectedClient)?.name : '전체'} 통계
+							</h3>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<div className="space-y-3">
 									<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
 										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 매출</p>
 										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{monthlyTotal.totalAmount.toLocaleString()}원</p>
+									</div>
+									<div className="grid grid-cols-2 gap-3">
+										<div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
+											<p className="text-sm text-yellow-600 dark:text-yellow-400 mb-1">정산 대기</p>
+											<p className="text-xl font-semibold text-yellow-700 dark:text-yellow-300">{monthlyTotal.pendingAmount.toLocaleString()}원</p>
+										</div>
+										<div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+											<p className="text-sm text-green-600 dark:text-green-400 mb-1">정산 완료</p>
+											<p className="text-xl font-semibold text-green-700 dark:text-green-300">{monthlyTotal.completedAmount.toLocaleString()}원</p>
+										</div>
 									</div>
 									<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
 										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 작업시간</p>
@@ -420,14 +457,16 @@ export default function TaskList() {
 									</div>
 								</div>
 								<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
-									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">클라이언트별 통계</p>
+									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">담당자별 수익률</p>
 									<div className="space-y-2">
-										{Object.entries(monthlyTotal.clientTotals).map(([clientName, { amount, hours }]) => (
-											<div key={clientName} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
-												<span className="text-sm font-medium text-gray-700 dark:text-gray-300">{clientName}</span>
+										{Object.entries(monthlyTotal.managerTotals).map(([manager, { amount, hours }]) => (
+											<div key={manager} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
+												<span className="text-sm font-medium text-gray-700 dark:text-gray-300">{manager}</span>
 												<div className="text-right">
 													<p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{amount.toLocaleString()}원</p>
-													<p className="text-xs text-gray-500 dark:text-gray-400">{formatTimeUnit(hours)}</p>
+													<p className="text-xs text-gray-500 dark:text-gray-400">
+														{formatTimeUnit(hours)} | {Math.round((amount / monthlyTotal.totalAmount) * 100)}%
+													</p>
 												</div>
 											</div>
 										))}
@@ -520,9 +559,22 @@ export default function TaskList() {
 													</span>
 												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
-												<td className="px-6 py-4">
+												<td className="px-6 py-4 relative group" onMouseEnter={() => setHoveredTaskId(task.id)} onMouseLeave={() => setHoveredTaskId(null)} onMouseMove={handleMouseMove}>
 													<div className="text-sm text-gray-900 dark:text-gray-100">{task.title}</div>
-													{task.description && <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{task.description}</div>}
+													{task.description && (
+														<div className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1 group-hover:text-blue-500 dark:group-hover:text-blue-400">{task.description}</div>
+													)}
+													{/* 툴팁/팝오버 */}
+													{hoveredTaskId === task.id && task.description && (
+														<div
+															className="fixed z-50 w-64 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-md shadow-lg p-3"
+															style={{
+																left: `${mousePosition.x + 10}px`,
+																top: `${mousePosition.y + 10}px`,
+															}}>
+															<div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{task.description}</div>
+														</div>
+													)}
 												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.manager || '-'}</td>
 												<td className="px-6 py-4 whitespace-nowrap">

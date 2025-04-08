@@ -193,32 +193,41 @@ export default function TaskDetailDrawer({ isOpen, onClose, taskId }) {
 						</div>
 
 						{task.clients && (
-							<div className="mb-6 bg-gray-50 dark:bg-dark-bg/60 p-4 rounded-lg">
-								<h3 className="text-lg font-semibold mb-2">클라이언트 정보</h3>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div>
-										<p className="text-gray-600 dark:text-gray-400">이름</p>
-										<p className="font-medium dark:text-white">{task.clients.name}</p>
+							<div className="mb-4">
+								<details className="group">
+									<summary className="flex items-center justify-between cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+										<span>클라이언트 정보</span>
+										<svg className="w-5 h-5 transition-transform group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+										</svg>
+									</summary>
+									<div className="mt-2 px-2 py-3 bg-gray-50 dark:bg-dark-bg/40 rounded text-sm">
+										<div className="flex flex-wrap">
+											<div className="w-full flex items-center mb-1">
+												<span className="text-gray-500 dark:text-gray-400 mr-2 w-16">이름:</span>
+												<span className="font-medium dark:text-gray-300">{task.clients.name}</span>
+											</div>
+											{task.clients.contact_person && (
+												<div className="w-full flex items-center mb-1">
+													<span className="text-gray-500 dark:text-gray-400 mr-2 w-16">담당자:</span>
+													<span className="dark:text-gray-300">{task.clients.contact_person}</span>
+												</div>
+											)}
+											{task.clients.contact_email && (
+												<div className="w-full flex items-center mb-1">
+													<span className="text-gray-500 dark:text-gray-400 mr-2 w-16">이메일:</span>
+													<span className="dark:text-gray-300">{task.clients.contact_email}</span>
+												</div>
+											)}
+											{task.clients.contact_phone && (
+												<div className="w-full flex items-center">
+													<span className="text-gray-500 dark:text-gray-400 mr-2 w-16">연락처:</span>
+													<span className="dark:text-gray-300">{task.clients.contact_phone}</span>
+												</div>
+											)}
+										</div>
 									</div>
-									{task.clients.contact_person && (
-										<div>
-											<p className="text-gray-600 dark:text-gray-400">담당자</p>
-											<p className="font-medium dark:text-white">{task.clients.contact_person}</p>
-										</div>
-									)}
-									{task.clients.contact_email && (
-										<div>
-											<p className="text-gray-600 dark:text-gray-400">이메일</p>
-											<p className="font-medium dark:text-white">{task.clients.contact_email}</p>
-										</div>
-									)}
-									{task.clients.contact_phone && (
-										<div>
-											<p className="text-gray-600 dark:text-gray-400">연락처</p>
-											<p className="font-medium dark:text-white">{task.clients.contact_phone}</p>
-										</div>
-									)}
-								</div>
+								</details>
 							</div>
 						)}
 
