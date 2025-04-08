@@ -193,23 +193,45 @@ export default function TaskList() {
 		const managerTotals = {}; // 담당자별 통계
 
 		filteredTasks.forEach(task => {
-			totalAmount += task.price || 0;
-			totalHours += task.hours || 0;
+			const taskPrice = task.price || 0;
+			const taskHours = task.hours || 0;
+
+			totalAmount += taskPrice;
+			totalHours += taskHours;
 
 			// 정산 상태별 금액
 			if (task.settlement_status === 'pending') {
-				pendingAmount += task.price || 0;
+				pendingAmount += taskPrice;
 			} else if (task.settlement_status === 'completed') {
-				completedAmount += task.price || 0;
+				completedAmount += taskPrice;
 			}
 
 			// 담당자별 통계
-			const manager = task.manager || '담당자 미지정';
-			if (!managerTotals[manager]) {
-				managerTotals[manager] = { amount: 0, hours: 0 };
+			// 담당자 정보가 없는 경우 '담당자 미지정'으로 처리
+			let managers = task.manager ? task.manager.split(',').map(m => m.trim()) : ['담당자 미지정'];
+
+			// 담당자가 비어 있거나 유효하지 않은 경우 '담당자 미지정'으로 처리
+			if (managers.length === 0 || (managers.length === 1 && !managers[0])) {
+				managers = ['담당자 미지정'];
 			}
-			managerTotals[manager].amount += task.price || 0;
-			managerTotals[manager].hours += task.hours || 0;
+
+			// 각 담당자에게 금액과 시간 균등 분배
+			const pricePerManager = taskPrice / managers.length;
+			const hoursPerManager = taskHours / managers.length;
+
+			managers.forEach(manager => {
+				if (!managerTotals[manager]) {
+					managerTotals[manager] = { amount: 0, hours: 0 };
+				}
+				managerTotals[manager].amount += pricePerManager;
+				managerTotals[manager].hours += hoursPerManager;
+			});
+		});
+
+		// 금액 반올림 처리
+		Object.keys(managerTotals).forEach(manager => {
+			managerTotals[manager].amount = Math.round(managerTotals[manager].amount);
+			managerTotals[manager].hours = Math.round(managerTotals[manager].hours * 10) / 10; // 소수점 첫째자리까지 유지
 		});
 
 		return {
@@ -463,7 +485,7 @@ export default function TaskList() {
 										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{formatTimeUnit(monthlyTotal.totalHours)}</p>
 									</div>
 								</div>
-								<div className="bg-gray-50 dark:bg-dark-bg  p-4">
+								<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
 									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">담당자별 수익률</p>
 									<div className="space-y-2">
 										{Object.entries(monthlyTotal.managerTotals).map(([manager, { amount, hours }]) => (

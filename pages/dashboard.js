@@ -283,11 +283,27 @@ export default function Dashboard() {
 		const managerRevenue = {};
 
 		filteredTasks.forEach(task => {
-			const manager = task.manager || '담당자 미지정';
-			if (!managerRevenue[manager]) {
-				managerRevenue[manager] = 0;
+			// 담당자 정보가 없는 경우 '담당자 미지정'으로 처리
+			let managers = task.manager ? task.manager.split(',').map(m => m.trim()) : ['담당자 미지정'];
+
+			// 담당자가 비어 있거나 유효하지 않은 경우 '담당자 미지정'으로 처리
+			if (managers.length === 0 || (managers.length === 1 && !managers[0])) {
+				managers = ['담당자 미지정'];
 			}
-			managerRevenue[manager] += task.price || 0;
+
+			// 업무 가격이 있는 경우에만 처리
+			if (task.price) {
+				// 담당자별로 금액 분배 (균등 분배)
+				const pricePerManager = task.price / managers.length;
+
+				// 각 담당자에게 금액 할당
+				managers.forEach(manager => {
+					if (!managerRevenue[manager]) {
+						managerRevenue[manager] = 0;
+					}
+					managerRevenue[manager] += pricePerManager;
+				});
+			}
 		});
 
 		// 금액이 높은 순서대로 정렬
@@ -300,7 +316,7 @@ export default function Dashboard() {
 			labels: sortedManagers,
 			datasets: [
 				{
-					data: sortedManagers.map(manager => managerRevenue[manager]),
+					data: sortedManagers.map(manager => Math.round(managerRevenue[manager])), // 소수점 반올림
 					backgroundColor: colors.backgroundColor,
 					borderColor: colors.borderColor,
 					borderWidth: 1,
