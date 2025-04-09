@@ -8,7 +8,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	const [description, setDescription] = useState('');
 	const [clientId, setClientId] = useState('');
 	const [manager, setManager] = useState('');
-	const [category, setCategory] = useState('');
+	const [category, setCategory] = useState('operation');
 	const [timeValue, setTimeValue] = useState('');
 	const [timeUnit, setTimeUnit] = useState('hour'); // hour, day
 	const [pricePerHour, setPricePerHour] = useState('');
@@ -25,6 +25,15 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 		fetchClients();
 	}, []);
 
+	useEffect(() => {
+		if (category) {
+			const defaultCategory = categories.find(c => c.id === category);
+			if (defaultCategory && !pricePerHour) {
+				setPricePerHour(defaultCategory.defaultPrice);
+			}
+		}
+	}, [category]);
+
 	async function fetchClients() {
 		try {
 			const { data, error } = await supabase.from('clients').select('id, name').order('name', { ascending: true });
@@ -38,12 +47,10 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 		}
 	}
 
-	// 카테고리 변경 시 해당 카테고리의 기본 단가로 업데이트
-	const handleCategoryChange = e => {
-		const selectedCategory = e.target.value;
-		setCategory(selectedCategory);
-
-		const categoryInfo = categories.find(cat => cat.id === selectedCategory);
+	// 카테고리 선택 버튼 클릭 핸들러 추가
+	const handleCategoryButtonClick = cat => {
+		setCategory(cat);
+		const categoryInfo = categories.find(c => c.id === cat);
 		if (categoryInfo) {
 			setPricePerHour(categoryInfo.defaultPrice);
 		}
@@ -191,21 +198,47 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			</div>
 
 			<div className="mb-6">
-				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">업무 카테고리 및 시간당 단가 *</label>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					{categories.map(cat => (
-						<label
-							key={cat.id}
-							className={`flex flex-col border dark:border-dark-border rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-border/40 transition-all ${
-								category === cat.id ? 'ring-2 ring-blue-500 border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
-							}`}>
-							<div className="flex items-center">
-								<input type="radio" name="category" value={cat.id} checked={category === cat.id} onChange={handleCategoryChange} className="form-radio h-4 w-4 text-blue-600" required />
-								<span className="ml-2 text-gray-700 dark:text-gray-200 font-medium">{cat.name}</span>
-							</div>
-							<div className="mt-2 ml-6 text-sm font-medium text-blue-600 dark:text-blue-400">{cat.defaultPrice} 만원/시간</div>
-						</label>
-					))}
+				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">업무 카테고리*</label>
+				<div id="selectCategory" className="grid grid-flow-col auto-cols-fr items-center self-stretch rounded-lg bg-neutral-800 p-1 mb-4">
+					<button
+						type="button"
+						onClick={() => handleCategoryButtonClick('operation')}
+						className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-10 ${
+							category === 'operation' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
+						}`}>
+						<div className="flex items-center gap-2">
+							<span className="text-blue-400">
+								<i className="fa-duotone fa-clipboard-list"></i>
+							</span>
+							<p>운영</p>
+						</div>
+					</button>
+					<button
+						type="button"
+						onClick={() => handleCategoryButtonClick('design')}
+						className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-10 ${
+							category === 'design' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
+						}`}>
+						<div className="flex items-center gap-2">
+							<span className="text-purple-400">
+								<i className="fa-duotone fa-paint-brush"></i>
+							</span>
+							<p>디자인</p>
+						</div>
+					</button>
+					<button
+						type="button"
+						onClick={() => handleCategoryButtonClick('development')}
+						className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-10 ${
+							category === 'development' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
+						}`}>
+						<div className="flex items-center gap-2">
+							<span className="text-green-400">
+								<i className="fa-duotone fa-code"></i>
+							</span>
+							<p>개발</p>
+						</div>
+					</button>
 				</div>
 			</div>
 
@@ -234,8 +267,8 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 
 			<div className="mb-6">
 				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">소요 시간 *</label>
-				<div className="grid grid-cols-3 gap-4 items-center">
-					<div className="col-span-2">
+				<div className="flex gap-2">
+					<div className="w-full">
 						<input
 							id="timeValue"
 							type="number"
@@ -248,15 +281,33 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 							placeholder="예: 2.5"
 						/>
 					</div>
-					<div className="flex items-center space-x-4">
-						<label className="inline-flex items-center">
-							<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="hour" checked={timeUnit === 'hour'} onChange={e => setTimeUnit(e.target.value)} />
-							<span className="ml-2 dark:text-gray-200">시간</span>
-						</label>
-						<label className="inline-flex items-center">
-							<input type="radio" className="form-radio h-4 w-4 text-blue-600" name="timeUnit" value="day" checked={timeUnit === 'day'} onChange={e => setTimeUnit(e.target.value)} />
-							<span className="ml-2 dark:text-gray-200">일</span>
-						</label>
+					<div id="selectTimeUnit" className="grid grid-flow-col auto-cols-fr items-center self-stretch rounded-lg bg-neutral-800 p-1 w-full">
+						<button
+							type="button"
+							onClick={() => setTimeUnit('hour')}
+							className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-9 ${
+								timeUnit === 'hour' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
+							}`}>
+							<div className="flex items-center gap-2">
+								<span className="text-blue-400">
+									<i className="fa-duotone fa-clock"></i>
+								</span>
+								<p>시간</p>
+							</div>
+						</button>
+						<button
+							type="button"
+							onClick={() => setTimeUnit('day')}
+							className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-9 ${
+								timeUnit === 'day' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
+							}`}>
+							<div className="flex items-center gap-2">
+								<span className="text-green-400">
+									<i className="fa-duotone fa-calendar-day"></i>
+								</span>
+								<p>일</p>
+							</div>
+						</button>
 					</div>
 				</div>
 				<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{timeUnit === 'day' ? '1일 = 8시간으로 계산됩니다.' : ''}</p>
@@ -300,9 +351,7 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 						onClick={e => e.target.showPicker()}
 					/>
 					<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-						<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-						</svg>
+						<i className="fa-duotone fa-calendar-days"></i>
 					</div>
 				</div>
 			</div>

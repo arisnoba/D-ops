@@ -8,16 +8,54 @@ import { Bar, Pie, Line } from 'react-chartjs-2';
 // Chart.js 등록
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
-// 랜덤 색상 생성
-function generateColors(count) {
-	const colors = [];
-	for (let i = 0; i < count; i++) {
-		const r = Math.floor(Math.random() * 255);
-		const g = Math.floor(Math.random() * 255);
-		const b = Math.floor(Math.random() * 255);
-		colors.push(`rgba(${r}, ${g}, ${b}, 0.7)`);
+// 카테고리별 색상 정의
+function getCategoryColor(category) {
+	switch (category) {
+		case 'design':
+			return { bg: 'rgba(168, 85, 247, 0.2)', border: 'rgba(168, 85, 247, 1)' }; // 퍼플
+		case 'development':
+			return { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 1)' }; // 초록
+		case 'operation':
+			return { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 1)' }; // 파랑
+		default:
+			return { bg: 'rgba(107, 114, 128, 0.2)', border: 'rgba(107, 114, 128, 1)' }; // 회색
 	}
-	return { backgroundColor: colors, borderColor: colors.map(c => c.replace('0.7', '1')) };
+}
+
+// 색상 생성 함수 수정
+function generateColors(count) {
+	// 기본 카테고리 색상
+	const categoryColors = [
+		{ bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 1)' }, // 파랑 (운영)
+		{ bg: 'rgba(168, 85, 247, 0.2)', border: 'rgba(168, 85, 247, 1)' }, // 퍼플 (디자인)
+		{ bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 1)' }, // 초록 (개발)
+	];
+
+	// 추가 색상 세트
+	const additionalColors = [
+		{ bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 1)' }, // 빨강
+		{ bg: 'rgba(249, 115, 22, 0.2)', border: 'rgba(249, 115, 22, 1)' }, // 주황
+		{ bg: 'rgba(234, 179, 8, 0.2)', border: 'rgba(234, 179, 8, 1)' }, // 노랑
+		{ bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 1)' }, // 티일
+		{ bg: 'rgba(6, 182, 212, 0.2)', border: 'rgba(6, 182, 212, 1)' }, // 사이언
+		{ bg: 'rgba(99, 102, 241, 0.2)', border: 'rgba(99, 102, 241, 1)' }, // 인디고
+		{ bg: 'rgba(217, 70, 239, 0.2)', border: 'rgba(217, 70, 239, 1)' }, // 푸시아
+		{ bg: 'rgba(236, 72, 153, 0.2)', border: 'rgba(236, 72, 153, 1)' }, // 핑크
+	];
+
+	// 필요한 색상이 기본 카테고리 색상보다 많으면 추가 색상을 사용
+	const colors = [...categoryColors];
+	if (count > categoryColors.length) {
+		// 추가 색상을 반복해서 필요한 만큼 추가
+		for (let i = 0; i < count - categoryColors.length; i++) {
+			colors.push(additionalColors[i % additionalColors.length]);
+		}
+	}
+
+	return {
+		backgroundColor: colors.slice(0, count).map(c => c.bg),
+		borderColor: colors.slice(0, count).map(c => c.border),
+	};
 }
 
 export default function Dashboard() {

@@ -29,19 +29,18 @@ function MyApp({ Component, pageProps, router }) {
 		<AuthProvider>
 			<Head>
 				<title>D-ops | 디자인, 개발, 운영 관리 시스템</title>
-				<meta name="description" content="디자인, 개발, 운영 업무를 효율적으로 관리하는 시스템" />
-				<link rel="icon" href="/favicon.ico" />
+				<meta key="main-viewport" name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
 
 			<div className="min-h-screen bg-gray-50 dark:bg-dark-bg dark:text-dark-text">
 				{isProtectedRoute ? (
 					<ProtectedRoute>
 						<Layout>
-							<Component {...pageProps} />
+							<Component {...pageProps} key={router.route} />
 						</Layout>
 					</ProtectedRoute>
 				) : (
-					<Component {...pageProps} />
+					<Component {...pageProps} key={router.route} />
 				)}
 			</div>
 		</AuthProvider>

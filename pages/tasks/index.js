@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import TaskDetailDrawer from '../../components/TaskDetailDrawer';
+import TaskDescription from '../../components/TaskDescription';
 
 export default function TaskList() {
 	const [loading, setLoading] = useState(false);
@@ -18,7 +19,9 @@ export default function TaskList() {
 	const [bulkActionLoading, setBulkActionLoading] = useState(false);
 	const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
 	const [hoveredTaskId, setHoveredTaskId] = useState(null);
-	const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+	const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+	const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+	const [hoveredTaskDescription, setHoveredTaskDescription] = useState('');
 
 	// 필터링 상태
 	const [selectedClient, setSelectedClient] = useState('all');
@@ -142,9 +145,9 @@ export default function TaskList() {
 			case 'design':
 				return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
 			case 'development':
-				return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-			case 'operation':
 				return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+			case 'operation':
+				return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
 			default:
 				return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
 		}
@@ -331,10 +334,37 @@ export default function TaskList() {
 		}
 	};
 
-	// 마우스 위치 갱신 함수
-	const handleMouseMove = e => {
-		setMousePosition({ x: e.clientX, y: e.clientY });
+	// 마우스 이벤트 핸들러
+	const handleDescriptionMouseEnter = (e, description) => {
+		if (description) {
+			setTooltipPosition({ x: e.clientX + 15, y: e.clientY + 15 });
+			setHoveredTaskDescription(description);
+			setIsTooltipVisible(true);
+		}
 	};
+
+	const handleDescriptionMouseLeave = () => {
+		setIsTooltipVisible(false);
+		setHoveredTaskDescription('');
+	};
+
+	// 마우스 이동 이벤트 리스너
+	useEffect(() => {
+		const handleMouseMove = e => {
+			if (isTooltipVisible) {
+				setTooltipPosition({ x: e.clientX + 15, y: e.clientY + 15 });
+			}
+		};
+
+		// 이벤트 추가/제거
+		if (isTooltipVisible) {
+			window.addEventListener('mousemove', handleMouseMove);
+		}
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove);
+		};
+	}, [isTooltipVisible]);
 
 	return (
 		<>
@@ -371,35 +401,23 @@ export default function TaskList() {
 								</div>
 							)}
 							{/* 정산 상태 필터 버튼 그룹 */}
-							<div className="inline-flex rounded-lg border border-gray-200 dark:border-dark-border">
+							<div className="inline-flex rounded-lg bg-gray-100 dark:bg-neutral-900 p-1">
 								<button
 									onClick={() => setSettlementStatus('all')}
-									className={`px-4 py-2 text-sm font-medium first:rounded-l-lg last:rounded-r-lg border-r dark:border-dark-border transition-colors duration-150 ease-in-out
-									${
-										settlementStatus === 'all'
-											? 'bg-gray-900 text-white dark:bg-gray-600 hover:bg-gray-800 dark:hover:bg-gray-700'
-											: 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-dark-card dark:text-gray-300 dark:hover:bg-dark-bg/60'
-									} focus:z-10`}>
+									className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
+										${settlementStatus === 'all' ? 'bg-white dark:bg-neutral-950 shadow text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
 									전체
 								</button>
 								<button
 									onClick={() => setSettlementStatus('pending')}
-									className={`px-4 py-2 text-sm font-medium border-r dark:border-dark-border transition-colors duration-150 ease-in-out
-									${
-										settlementStatus === 'pending'
-											? 'bg-yellow-600 text-white hover:bg-yellow-700'
-											: 'bg-white text-yellow-700 hover:bg-yellow-50 dark:bg-dark-card dark:text-yellow-300 dark:hover:bg-yellow-900/20'
-									} focus:z-10`}>
+									className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
+										${settlementStatus === 'pending' ? 'bg-white dark:bg-neutral-950 shadow text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
 									정산 대기
 								</button>
 								<button
 									onClick={() => setSettlementStatus('completed')}
-									className={`px-4 py-2 text-sm font-medium first:rounded-l-lg last:rounded-r-lg transition-colors duration-150 ease-in-out
-									${
-										settlementStatus === 'completed'
-											? 'bg-green-600 text-white hover:bg-green-700'
-											: 'bg-white text-green-700 hover:bg-green-50 dark:bg-dark-card dark:text-green-300 dark:hover:bg-green-900/20'
-									} focus:z-10`}>
+									className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
+										${settlementStatus === 'completed' ? 'bg-white dark:bg-neutral-950 shadow text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
 									정산 완료
 								</button>
 							</div>
@@ -588,22 +606,12 @@ export default function TaskList() {
 													</span>
 												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
-												<td className="px-6 py-4 relative group" onMouseEnter={() => setHoveredTaskId(task.id)} onMouseLeave={() => setHoveredTaskId(null)} onMouseMove={handleMouseMove}>
-													<div className="text-sm text-gray-900 dark:text-gray-100">{task.title}</div>
-													{task.description && (
-														<div className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1 group-hover:text-blue-500 dark:group-hover:text-blue-400">{task.description}</div>
-													)}
-													{/* 툴팁/팝오버 */}
-													{hoveredTaskId === task.id && task.description && (
-														<div
-															className="fixed z-50 w-64 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-md shadow-lg p-3"
-															style={{
-																left: `${mousePosition.x + 10}px`,
-																top: `${mousePosition.y + 10}px`,
-															}}>
-															<div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{task.description}</div>
-														</div>
-													)}
+												<td
+													id="tdSec"
+													className="px-6 py-4 relative group cursor-pointer"
+													onMouseEnter={e => handleDescriptionMouseEnter(e, task.description)}
+													onMouseLeave={handleDescriptionMouseLeave}>
+													<TaskDescription title={task.title} description={task.description} />
 												</td>
 												<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.manager || '-'}</td>
 												<td className="px-6 py-4 whitespace-nowrap">
@@ -624,6 +632,19 @@ export default function TaskList() {
 			</div>
 
 			<TaskDetailDrawer isOpen={isDrawerOpen} onClose={handleCloseDrawer} taskId={selectedTaskId} onUpdate={fetchTasks} />
+
+			{/* 툴팁 */}
+			{isTooltipVisible && hoveredTaskDescription && (
+				<div
+					className="fixed z-[9999] text-sm p-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md shadow-lg whitespace-pre-wrap break-words pointer-events-none"
+					style={{
+						left: tooltipPosition.x + 'px',
+						top: tooltipPosition.y + 'px',
+						maxWidth: '260px',
+					}}>
+					{hoveredTaskDescription}
+				</div>
+			)}
 		</>
 	);
 }
