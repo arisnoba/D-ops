@@ -28,7 +28,7 @@ function MyApp({ Component, pageProps, router }) {
 	return (
 		<AuthProvider>
 			<Head>
-				<title>D-ops | 디자인, 개발, 운영 관리 시스템</title>
+				<title>D:OPS - 운영 관리 시스템</title>
 				<meta key="main-viewport" name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
 

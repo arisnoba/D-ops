@@ -21,7 +21,7 @@ D-ops는 디자인, 개발, 운영 업무량을 기록하고 그에 따른 가�
 1. 저장소 클론
 
    ```
-   git clone https://github.com/yourusername/d-ops.git
+   git clone https://github.com/arisnoba/d-ops.git
    cd d-ops
    ```
 

@@ -61,7 +61,7 @@ export default function ClientList() {
 	return (
 		<>
 			<Head>
-				<title>클라이언트 관리 | D-ops</title>
+				<title>클라이언트 관리 - D:OPS</title>
 			</Head>
 
 			<main className="flex-grow ">

@@ -369,7 +369,7 @@ export default function TaskList() {
 	return (
 		<>
 			<Head>
-				<title>업무 관리 | D-ops</title>
+				<title>업무 관리 - D:OPS</title>
 			</Head>
 
 			<div className="h-full flex flex-col">

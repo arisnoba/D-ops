@@ -384,7 +384,7 @@ export default function Dashboard() {
 	return (
 		<>
 			<Head>
-				<title>대시보드 | D-ops</title>
+				<title>대시보드 - D:OPS</title>
 			</Head>
 
 			<main className="flex-grow container mx-auto py-4 px-4">
