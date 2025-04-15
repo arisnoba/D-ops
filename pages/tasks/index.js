@@ -31,6 +31,9 @@ export default function TaskList() {
 	const [months, setMonths] = useState([]);
 	const [settlementStatus, setSettlementStatus] = useState('pending');
 
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [pendingSettlementStatus, setPendingSettlementStatus] = useState(null);
+
 	useEffect(() => {
 		fetchTasks();
 		fetchClients();
@@ -333,16 +336,20 @@ export default function TaskList() {
 		}
 	};
 
-	const handleBulkSettlement = async status => {
-		if (!selectedTasks.size) return;
+	const handleBulkSettlementClick = status => {
+		setPendingSettlementStatus(status);
+		setIsModalOpen(true);
+	};
+
+	const handleConfirmSettlement = async () => {
+		if (!pendingSettlementStatus) return;
 
 		try {
 			setBulkActionLoading(true);
-			const { error } = await supabase.from('tasks').update({ settlement_status: status }).in('id', Array.from(selectedTasks));
+			const { error } = await supabase.from('tasks').update({ settlement_status: pendingSettlementStatus }).in('id', Array.from(selectedTasks));
 
 			if (error) throw error;
 
-			// 성공적으로 업데이트된 후 데이터 새로고침
 			await fetchTasks();
 			setSelectedTasks(new Set());
 			setIsBulkActionsVisible(false);
@@ -352,6 +359,8 @@ export default function TaskList() {
 			alert('정산 상태 업데이트 중 오류가 발생했습니다.');
 		} finally {
 			setBulkActionLoading(false);
+			setIsModalOpen(false);
+			setPendingSettlementStatus(null);
 		}
 	};
 
@@ -403,11 +412,68 @@ export default function TaskList() {
 		return statusCount;
 	};
 
+	const getSelectedTasksDateRange = () => {
+		const selectedTasksList = filteredTasks.filter(task => selectedTasks.has(task.id));
+		if (selectedTasksList.length === 0) return null;
+
+		const dates = selectedTasksList.map(task => new Date(task.task_date || task.created_at));
+		const oldestDate = new Date(Math.min(...dates));
+		const latestDate = new Date(Math.max(...dates));
+
+		return {
+			oldestDate: formatDate(oldestDate),
+			latestDate: formatDate(latestDate),
+		};
+	};
+
 	return (
 		<>
 			<Head>
 				<title>업무 관리 - D:OPS</title>
 			</Head>
+
+			{/* 모달 */}
+			{isModalOpen && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-sm w-full mx-4">
+						<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">정산 상태 변경 확인</h3>
+						<div className="text-gray-600 dark:text-gray-300 space-y-4 mb-6">
+							<p>
+								<span className="font-medium text-gray-900 dark:text-gray-100">
+									총 <span className="text-green-900 dark:text-green-500">{getSelectedTasksStatusCount().completed + getSelectedTasksStatusCount().pending}</span>개
+								</span>
+								의 업무를{' '}
+								<span className={`font-medium ${pendingSettlementStatus === 'completed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+									정산 {pendingSettlementStatus === 'completed' ? '완료' : '대기'}
+								</span>{' '}
+								상태로 변경하시겠습니까?
+								{getSelectedTasksDateRange() && (
+									<p className="text-sm mt-1 opacity-60">
+										<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().oldestDate}</span>
+										{' 부터 '}
+										<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().latestDate}</span>의 업무
+									</p>
+								)}
+							</p>
+
+							<p></p>
+						</div>
+						<div className="flex justify-end space-x-3">
+							<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg rounded-md transition-colors">
+								취소
+							</button>
+							<button
+								onClick={handleConfirmSettlement}
+								disabled={bulkActionLoading}
+								className={`px-4 py-2 text-white rounded-md transition-colors ${
+									pendingSettlementStatus === 'completed' ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'
+								} disabled:opacity-50`}>
+								확인
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 
 			<div className="h-full flex flex-col">
 				{/* 필터 영역 */}
@@ -426,16 +492,16 @@ export default function TaskList() {
 									</div>
 									<div className="flex items-center space-x-2">
 										<button
-											onClick={() => handleBulkSettlement('completed')}
+											onClick={() => handleBulkSettlementClick('completed')}
 											disabled={bulkActionLoading}
 											className="bg-green-950 hover:bg-green-900 border border-green-800 hover:border-green-600 text-gray-300 py-1.5 px-3 rounded-lg shadow-md transition duration-200">
-											정산 완료로 변경
+											완료로 변경
 										</button>
 										<button
-											onClick={() => handleBulkSettlement('pending')}
+											onClick={() => handleBulkSettlementClick('pending')}
 											disabled={bulkActionLoading}
 											className="bg-yellow-950 hover:bg-yellow-900 border border-yellow-800 hover:border-yellow-600 text-gray-300 py-1.5 px-3 rounded-lg shadow-md transition duration-200">
-											정산 대기로 변경
+											대기로 변경
 										</button>
 									</div>
 								</div>
