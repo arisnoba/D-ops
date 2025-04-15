@@ -455,8 +455,6 @@ export default function TaskList() {
 									</p>
 								)}
 							</p>
-
-							<p></p>
 						</div>
 						<div className="flex justify-end space-x-3">
 							<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg rounded-md transition-colors">
@@ -486,8 +484,8 @@ export default function TaskList() {
 									<div className="flex items-center space-x-2 mr-4">
 										{/* <input ref={checkboxRef} type="checkbox" checked={isAllSelected} onChange={handleSelectAll} /> */}
 										<span className="text-lg text-gray-600 dark:text-gray-300">
-											정산 완료 <span className="font-bold text-gray-900 dark:text-green-500">{getSelectedTasksStatusCount().completed}</span>개, 정산 대기{' '}
-											<span className="font-bold text-gray-900 dark:text-yellow-500">{getSelectedTasksStatusCount().pending}</span>개 선택됨
+											정산 대기 <span className="font-bold text-gray-900 dark:text-yellow-500">{getSelectedTasksStatusCount().pending}</span>개, 정산 완료{' '}
+											<span className="font-bold text-gray-900 dark:text-green-500">{getSelectedTasksStatusCount().completed}</span>개 선택됨
 										</span>
 									</div>
 									<div className="flex items-center space-x-2">
@@ -692,7 +690,8 @@ export default function TaskList() {
 												key={task.id}
 												onClick={() => handleTaskClick(task.id)}
 												className={`hover:bg-gray-50 dark:hover:bg-dark-bg/60 cursor-pointer transition-colors duration-150
-													${task.settlement_status === 'completed' ? 'opacity-60' : ''}`}>
+													${task.settlement_status === 'completed' ? 'opacity-60' : ''}
+													${selectedTasks.has(task.id) ? 'bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-50/70 dark:hover:bg-gray-900/70' : ''}`}>
 												<td className="px-4 py-3" onClick={e => e.stopPropagation()}>
 													<div className="flex items-center">
 														<input type="checkbox" checked={selectedTasks.has(task.id)} onChange={e => handleSelectTask(e, task.id, index)} />
