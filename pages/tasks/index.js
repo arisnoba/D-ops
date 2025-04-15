@@ -633,7 +633,29 @@ export default function TaskList() {
 				{/* 테이블 영역 */}
 				<div className="flex-1 overflow-hidden" id="task-table">
 					<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm h-full flex flex-col">
-						<div className="overflow-auto">
+						<div className="overflow-auto scrollbar-custom">
+							<style jsx>{`
+								.scrollbar-custom::-webkit-scrollbar {
+									width: 8px;
+									height: 8px;
+								}
+								.scrollbar-custom::-webkit-scrollbar-track {
+									background: transparent;
+								}
+								.scrollbar-custom::-webkit-scrollbar-thumb {
+									background: #cbd5e1;
+									border-radius: 4px;
+								}
+								.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+									background: #94a3b8;
+								}
+								:global(.dark) .scrollbar-custom::-webkit-scrollbar-thumb {
+									background: rgb(104, 104, 104);
+								}
+								:global(.dark) .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+									background: #64748b;
+								}
+							`}</style>
 							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
 								<thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0 z-10">
 									<tr>
@@ -651,8 +673,8 @@ export default function TaskList() {
 										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
 											업무
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
-											담당자
+										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">
+											금액
 										</th>
 										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											카테고리
@@ -663,8 +685,9 @@ export default function TaskList() {
 										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">
 											단가
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">
-											금액
+
+										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+											담당자
 										</th>
 										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
 											날짜
@@ -713,15 +736,20 @@ export default function TaskList() {
 													onMouseLeave={handleDescriptionMouseLeave}>
 													<TaskDescription title={task.title} description={task.description} />
 												</td>
-												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{task.manager || '-'}</td>
+												{/* 총금액 */}
+												<td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 text-right">{task.price?.toLocaleString()}원</td>
+												{/* 카테고리 */}
 												<td className="px-4 py-3 whitespace-nowrap">
 													<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 												</td>
+												{/* 시간 */}
 												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatTimeUnit(task.hours)}</td>
+												{/* 단가 */}
 												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
 													{task.price_per_hour ? `${(task.price_per_hour / 10000).toLocaleString()}만원` : '-'}
 												</td>
-												<td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 text-right">{task.price?.toLocaleString()}원</td>
+
+												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-400">{task.manager || '-'}</td>
 												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.task_date || task.created_at)}</td>
 											</tr>
 										))
