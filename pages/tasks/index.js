@@ -700,9 +700,7 @@ export default function TaskList() {
 												<td className="px-4 py-3 whitespace-nowrap">
 													<span
 														className={`px-3 py-1 inline-flex text-xs leading-4 font-semibold rounded-full ${
-															task.settlement_status === 'completed'
-																? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-																: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+															task.settlement_status === 'completed' ? 'border text-green-500 border-green-500/30 ' : 'border text-yellow-500 border-yellow-500/30'
 														}`}>
 														{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
 													</span>
