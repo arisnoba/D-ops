@@ -10,7 +10,7 @@ const TaskDescription = memo(({ title, description }) => {
 			{description && (
 				<div
 					className={`mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1 ${
-						hasDollarSign ? 'text-yellow-600 dark:text-yellow-500 font-medium' : ''
+						hasDollarSign ? 'text-yellow-600 dark:text-green-700 font-medium' : ''
 					} group-hover:text-blue-500 dark:group-hover:text-blue-400`}>
 					{description}
 				</div>
