@@ -1,14 +1,28 @@
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { supabase } from '../lib/supabase';
+import PriceSettingModal from './PriceSettingModal';
 import SideNav from './SideNav';
 import Modal from './Modal';
 import ClientForm from './ClientForm';
 import TaskForm from './TaskForm';
-import { useRouter } from 'next/router';
 
 export default function Layout({ children }) {
 	const [clientModalOpen, setClientModalOpen] = useState(false);
 	const [taskModalOpen, setTaskModalOpen] = useState(false);
+	const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
 	const router = useRouter();
+
+	const handleSignOut = async () => {
+		try {
+			const { error } = await supabase.auth.signOut();
+			if (error) throw error;
+			router.push('/signin');
+		} catch (error) {
+			console.error('Error signing out:', error.message);
+		}
+	};
 
 	const handleClientSuccess = () => {
 		setClientModalOpen(false);
@@ -34,9 +48,9 @@ export default function Layout({ children }) {
 
 	return (
 		<div className="flex h-screen bg-gray-50 dark:bg-[#121212] overflow-auto">
-			<SideNav setClientModalOpen={setClientModalOpen} setTaskModalOpen={setTaskModalOpen} />
+			<SideNav setClientModalOpen={setClientModalOpen} setTaskModalOpen={setTaskModalOpen} setPriceModalOpen={setIsPriceModalOpen} />
 			<div className="flex-1 ml-48">
-				<main className="h-screen ">{children}</main>
+				<main className="h-screen">{children}</main>
 			</div>
 
 			{/* 클라이언트 등록 모달 */}
@@ -55,6 +69,9 @@ export default function Layout({ children }) {
 					}}
 				/>
 			</Modal>
+
+			{/* 단가 설정 모달 */}
+			<PriceSettingModal isOpen={isPriceModalOpen} onClose={() => setIsPriceModalOpen(false)} />
 		</div>
 	);
 }
