@@ -17,7 +17,7 @@ async function getStats(startDate, endDate) {
 	const { data: clients } = await supabase.from('clients').select('id, name');
 	const clientMap = Object.fromEntries(clients.map(c => [c.id, c.name]));
 
-	const { data, error } = await supabase.from('tasks').select('*, clients(name)').gte('task_date', startDate).lte('task_date', endDate);
+	const { data, error } = await supabase.from('tasks').select('*').gte('task_date', startDate).lte('task_date', endDate);
 
 	if (error) throw error;
 
@@ -62,11 +62,9 @@ async function getStats(startDate, endDate) {
 	const clientStats = data.reduce((acc, task) => {
 		const clientName = clientMap[task.client_id];
 		if (!acc[clientName]) {
-			acc[clientName] = { count: 0, hours: 0, price: 0 };
+			acc[clientName] = 0;
 		}
-		acc[clientName].count += 1;
-		acc[clientName].hours += task.hours;
-		acc[clientName].price += task.price;
+		acc[clientName] += 1;
 		return acc;
 	}, {});
 
@@ -75,8 +73,8 @@ async function getStats(startDate, endDate) {
 		categoryStats,
 		clientStats,
 		totalTasks: data.length,
-		totalHours: data.reduce((sum, task) => sum + task.hours, 0),
-		totalPrice: data.reduce((sum, task) => sum + task.price, 0),
+		totalHours: data.reduce((sum, task) => sum + parseFloat(task.hours), 0),
+		totalPrice: data.reduce((sum, task) => sum + parseFloat(task.price), 0),
 	};
 }
 
@@ -85,7 +83,10 @@ function formatCurrency(price) {
 }
 
 function formatClientCounts(clients) {
+	if (!clients) return '';
+
 	return Object.entries(clients)
+		.filter(([client, count]) => client && count)
 		.map(([client, count]) => `${client}(${count})`)
 		.join(', ');
 }
@@ -156,8 +157,13 @@ async function generateDailyReport() {
 async function generateWeeklyReport() {
 	const today = dayjs();
 	const lastWeek = today.subtract(1, 'week');
-	const startOfWeek = lastWeek.startOf('week').format('YYYY-MM-DD');
-	const endOfWeek = lastWeek.endOf('week').format('YYYY-MM-DD');
+
+	// 지난 주 월요일과 금요일 구하기
+	const monday = lastWeek.startOf('week').add(1, 'day'); // 월요일
+	const friday = monday.add(4, 'day'); // 금요일
+
+	const startOfWeek = monday.format('YYYY-MM-DD');
+	const endOfWeek = friday.format('YYYY-MM-DD');
 
 	const stats = await getStats(startOfWeek, endOfWeek);
 
@@ -166,7 +172,7 @@ async function generateWeeklyReport() {
 			type: 'header',
 			text: {
 				type: 'plain_text',
-				text: `📊 주간 업무 리포트 (${lastWeek.format('YYYY년 M월 D일')} ~ ${lastWeek.endOf('week').format('M월 D일')})`,
+				text: `📊 주간 업무 리포트 (${monday.format('YYYY년 M월 D일')} ~ ${friday.format('M월 D일')})`,
 			},
 		},
 		{
