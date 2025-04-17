@@ -97,7 +97,7 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 								<span className="mr-3">
 									<i className="fa-duotone fa-sliders-simple text-xl"></i>
 								</span>
-								<span>단가 설정</span>
+								<span>운영 단가 설정</span>
 							</button>
 						</li>
 					</ul>
