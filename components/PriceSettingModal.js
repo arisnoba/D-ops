@@ -57,8 +57,8 @@ export default function PriceSettingModal({ isOpen, onClose }) {
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-			<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-md w-full mx-4">
+		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+			<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
 				<h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">시간당 단가 설정</h2>
 
 				<div className="space-y-4">
@@ -69,7 +69,7 @@ export default function PriceSettingModal({ isOpen, onClose }) {
 								type="number"
 								value={prices.operation / 10000}
 								onChange={e => setPrices(prev => ({ ...prev, operation: e.target.value * 10000 }))}
-								className="block w-full rounded-md border-gray-300 dark:bg-dark-bg dark:border-gray-600 pr-12 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+								className="w-full px-4 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 							/>
 							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
 								<span className="text-gray-500 sm:text-sm">만원</span>
@@ -84,7 +84,7 @@ export default function PriceSettingModal({ isOpen, onClose }) {
 								type="number"
 								value={prices.design / 10000}
 								onChange={e => setPrices(prev => ({ ...prev, design: e.target.value * 10000 }))}
-								className="block w-full rounded-md border-gray-300 dark:bg-dark-bg dark:border-gray-600 pr-12 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+								className="w-full px-4 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 							/>
 							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
 								<span className="text-gray-500 sm:text-sm">만원</span>
@@ -99,7 +99,7 @@ export default function PriceSettingModal({ isOpen, onClose }) {
 								type="number"
 								value={prices.development / 10000}
 								onChange={e => setPrices(prev => ({ ...prev, development: e.target.value * 10000 }))}
-								className="block w-full rounded-md border-gray-300 dark:bg-dark-bg dark:border-gray-600 pr-12 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+								className="w-full px-4 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 							/>
 							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
 								<span className="text-gray-500 sm:text-sm">만원</span>

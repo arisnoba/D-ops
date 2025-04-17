@@ -434,11 +434,11 @@ export default function TaskList() {
 
 			{/* 모달 */}
 			{isModalOpen && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-sm w-full mx-4">
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsModalOpen(false)}>
+					<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
 						<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">정산 상태 변경 확인</h3>
 						<div className="text-gray-600 dark:text-gray-300 space-y-4 mb-6">
-							<p>
+							<div>
 								<span className="font-medium text-gray-900 dark:text-gray-100">
 									총 <span className="text-green-900 dark:text-green-500">{getSelectedTasksStatusCount().completed + getSelectedTasksStatusCount().pending}</span>개
 								</span>
@@ -448,13 +448,13 @@ export default function TaskList() {
 								</span>{' '}
 								상태로 변경하시겠습니까?
 								{getSelectedTasksDateRange() && (
-									<p className="text-sm mt-1 opacity-60">
+									<div className="text-sm mt-1 opacity-60">
 										<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().oldestDate}</span>
 										{' 부터 '}
 										<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().latestDate}</span>의 업무
-									</p>
+									</div>
 								)}
-							</p>
+							</div>
 						</div>
 						<div className="flex justify-end space-x-3">
 							<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg rounded-md transition-colors">

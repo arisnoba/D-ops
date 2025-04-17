@@ -1,19 +1,34 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import Input from './ui/Input';
+import Select from './ui/Select';
+import Button from './ui/Button';
+import RadioGroup from './ui/RadioGroup';
+import TextArea from './ui/TextArea';
+import Card from './ui/Card';
 
-export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
-	const [loading, setLoading] = useState(false);
-	const [clients, setClients] = useState([]);
-	const [title, setTitle] = useState('');
-	const [description, setDescription] = useState('');
-	const [clientId, setClientId] = useState('');
-	const [manager, setManager] = useState('');
-	const [category, setCategory] = useState('operation');
-	const [timeValue, setTimeValue] = useState('');
-	const [timeUnit, setTimeUnit] = useState('hour'); // hour, day
-	const [pricePerHour, setPricePerHour] = useState('');
-	const [taskDate, setTaskDate] = useState(new Date().toISOString().split('T')[0]);
+export default function TaskForm({ onSuccess, onCancel, onClientRequired, initialData }) {
+	const [formData, setFormData] = useState({
+		title: initialData?.title || '',
+		description: initialData?.description || '',
+		client_id: initialData?.client_id || '',
+		category: initialData?.category || 'operation',
+		manager: initialData?.manager || '',
+		hours: initialData?.hours || '',
+		price_per_hour: initialData?.price_per_hour || '',
+		task_date: initialData?.task_date || new Date().toISOString().split('T')[0],
+		settlement_status: initialData?.settlement_status || 'pending',
+		timeUnit: initialData?.timeUnit || 'hour',
+	});
+
 	const [error, setError] = useState(null);
+	const [clients, setClients] = useState([]);
+	const [loading, setLoading] = useState(false);
+	const [defaultPrices, setDefaultPrices] = useState({
+		operation: 2.5,
+		design: 3,
+		development: 5,
+	});
 
 	const categories = [
 		{ id: 'design', name: '디자인', defaultPrice: 3 },
@@ -23,16 +38,45 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 
 	useEffect(() => {
 		fetchClients();
+		fetchDefaultPrices();
 	}, []);
 
 	useEffect(() => {
-		if (category) {
-			const defaultCategory = categories.find(c => c.id === category);
-			if (defaultCategory && !pricePerHour) {
-				setPricePerHour(defaultCategory.defaultPrice);
-			}
+		// 카테고리가 변경될 때마다 해당하는 기본 단가로 설정
+		if (!initialData?.price_per_hour) {
+			setFormData(prev => ({
+				...prev,
+				price_per_hour: defaultPrices[prev.category] || '',
+			}));
 		}
-	}, [category]);
+	}, [formData.category, defaultPrices]);
+
+	const fetchDefaultPrices = async () => {
+		try {
+			const { data, error } = await supabase.from('settings').select('*').single();
+
+			if (error) throw error;
+
+			if (data) {
+				const prices = {
+					operation: data.operation_price / 10000, // 만원 단위로 변환
+					design: data.design_price / 10000,
+					development: data.development_price / 10000,
+				};
+				setDefaultPrices(prices);
+
+				// 초기 로드 시 현재 카테고리에 맞는 단가 설정
+				if (!initialData?.price_per_hour) {
+					setFormData(prev => ({
+						...prev,
+						price_per_hour: prices[prev.category] || '',
+					}));
+				}
+			}
+		} catch (error) {
+			console.error('Error fetching default prices:', error);
+		}
+	};
 
 	async function fetchClients() {
 		try {
@@ -49,19 +93,19 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 
 	// 카테고리 선택 버튼 클릭 핸들러 추가
 	const handleCategoryButtonClick = cat => {
-		setCategory(cat);
-		const categoryInfo = categories.find(c => c.id === cat);
-		if (categoryInfo) {
-			setPricePerHour(categoryInfo.defaultPrice);
-		}
+		setFormData(prev => ({
+			...prev,
+			category: cat,
+			price_per_hour: defaultPrices[cat] || '',
+		}));
 	};
 
 	// 시간 값을 시간 단위로 변환
 	const convertToHours = () => {
-		if (!timeValue) return 0;
-		const value = parseFloat(timeValue);
+		if (!formData.hours) return 0;
+		const value = parseFloat(formData.hours);
 
-		if (timeUnit === 'day') {
+		if (formData.timeUnit === 'day') {
 			return value * 8; // 1일 = 8시간
 		}
 		return value;
@@ -70,38 +114,38 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 	// 총 가격 계산
 	const calculateTotalPrice = () => {
 		const hours = convertToHours();
-		if (!hours || !pricePerHour) return 0;
+		if (!hours || !formData.price_per_hour) return 0;
 		// 단가는 만원 단위이므로 10000을 곱해서 원 단위로 변환
-		return hours * parseFloat(pricePerHour) * 10000;
+		return hours * parseFloat(formData.price_per_hour) * 10000;
 	};
 
 	async function handleSubmit(e) {
 		e.preventDefault();
 
 		// 기본 필수 필드 검증
-		if (!title || !category || !timeValue || !pricePerHour || !clientId) {
+		if (!formData.title || !formData.category || !formData.hours || !formData.price_per_hour || !formData.client_id) {
 			setError('필수 항목을 모두 입력해주세요.');
 			return;
 		}
 
 		// 추가 입력 유효성 검사
-		if (title.length < 2 || title.length > 200) {
+		if (formData.title.length < 2 || formData.title.length > 200) {
 			setError('업무 제목은 2자 이상 200자 이하로 입력해주세요.');
 			return;
 		}
 
-		if (description && description.length > 1000) {
+		if (formData.description && formData.description.length > 1000) {
 			setError('업무 설명은 1000자 이하로 입력해주세요.');
 			return;
 		}
 
-		const timeValueNum = parseFloat(timeValue);
+		const timeValueNum = parseFloat(formData.hours);
 		if (isNaN(timeValueNum) || timeValueNum <= 0 || timeValueNum > 999) {
 			setError('유효한 시간을 입력해주세요 (0보다 크고 999 이하).');
 			return;
 		}
 
-		const pricePerHourNum = parseFloat(pricePerHour);
+		const pricePerHourNum = parseFloat(formData.price_per_hour);
 		if (isNaN(pricePerHourNum) || pricePerHourNum <= 0 || pricePerHourNum > 1000000) {
 			setError('유효한 시간당 단가를 입력해주세요 (0보다 크고 1,000,000 이하).');
 			return;
@@ -115,21 +159,22 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			const totalPrice = calculateTotalPrice();
 
 			// 클라이언트 ID 숫자 형식으로 변환 및 검증
-			const clientIdNum = parseInt(clientId);
+			const clientIdNum = parseInt(formData.client_id);
 			if (isNaN(clientIdNum)) {
 				throw new Error('유효하지 않은 클라이언트 ID입니다.');
 			}
 
 			const sanitizedData = {
-				title: title.trim(),
-				description: description ? description.trim() : '',
+				title: formData.title.trim(),
+				description: formData.description ? formData.description.trim() : '',
 				client_id: clientIdNum,
-				manager: manager.trim(),
-				category,
+				manager: formData.manager.trim(),
+				category: formData.category,
 				hours: parseFloat(hours.toFixed(2)),
-				price_per_hour: parseFloat((parseFloat(pricePerHour) * 10000).toFixed(0)), // 데이터베이스에는 원 단위로 저장
+				price_per_hour: parseFloat((parseFloat(formData.price_per_hour) * 10000).toFixed(0)), // 데이터베이스에는 원 단위로 저장
 				price: parseInt(totalPrice),
-				task_date: taskDate,
+				task_date: formData.task_date,
+				settlement_status: formData.settlement_status,
 				created_at: new Date(),
 			};
 
@@ -138,11 +183,18 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 			if (error) throw error;
 
 			// 폼 초기화
-			setTitle('');
-			setDescription('');
-			setTimeValue('');
-			setManager('');
-			setTaskDate(new Date().toISOString().split('T')[0]);
+			setFormData({
+				title: '',
+				description: '',
+				client_id: '',
+				manager: '',
+				category: 'operation',
+				hours: '',
+				price_per_hour: '',
+				task_date: new Date().toISOString().split('T')[0],
+				settlement_status: 'pending',
+				timeUnit: 'hour',
+			});
 
 			// 성공 콜백 호출
 			if (onSuccess) {
@@ -158,225 +210,132 @@ export default function TaskForm({ onSuccess, onCancel, onClientRequired }) {
 
 	return (
 		<form onSubmit={handleSubmit}>
-			{error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>}
+			{error && (
+				<Card variant="subtle" className="border border-red-400 text-red-700 mb-6">
+					{error}
+				</Card>
+			)}
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-				<div>
-					{clients.length === 0 ? (
-						<div>
-							<p className="text-red-500 mb-2">등록된 클라이언트가 없습니다.</p>
-							<button type="button" onClick={onClientRequired} className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
-								+ 새 클라이언트 등록하기
-							</button>
-						</div>
-					) : (
-						<select
-							id="clientId"
-							value={clientId}
-							onChange={e => setClientId(e.target.value)}
-							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-							required>
-							<option value="">클라이언트 선택</option>
-							{clients.map(client => (
-								<option key={client.id} value={client.id}>
-									{client.name}
-								</option>
-							))}
-						</select>
-					)}
-				</div>
-				<div>
-					<input
-						id="manager"
-						type="text"
-						value={manager}
-						onChange={e => setManager(e.target.value)}
-						className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-						placeholder="시월 담당자, 구분은 콤마로 구분"
-					/>
-				</div>
-			</div>
-
-			<div className="mb-6">
-				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">업무 카테고리*</label>
-				<div id="selectCategory" className="grid grid-flow-col auto-cols-fr items-center self-stretch rounded-lg bg-neutral-800 p-1 mb-4">
-					<button
-						type="button"
-						onClick={() => handleCategoryButtonClick('operation')}
-						className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-10 ${
-							category === 'operation' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
-						}`}>
-						<div className="flex items-center gap-2">
-							<span className="text-blue-400">
-								<i className="fa-duotone fa-clipboard-list"></i>
-							</span>
-							<p>운영</p>
-						</div>
-					</button>
-					<button
-						type="button"
-						onClick={() => handleCategoryButtonClick('design')}
-						className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-10 ${
-							category === 'design' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
-						}`}>
-						<div className="flex items-center gap-2">
-							<span className="text-purple-400">
-								<i className="fa-duotone fa-paint-brush"></i>
-							</span>
-							<p>디자인</p>
-						</div>
-					</button>
-					<button
-						type="button"
-						onClick={() => handleCategoryButtonClick('development')}
-						className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-10 ${
-							category === 'development' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
-						}`}>
-						<div className="flex items-center gap-2">
-							<span className="text-green-400">
-								<i className="fa-duotone fa-code"></i>
-							</span>
-							<p>개발</p>
-						</div>
-					</button>
-				</div>
-			</div>
-
-			<div className="mb-2">
-				<input
-					id="title"
-					type="text"
-					value={title}
-					onChange={e => setTitle(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
+				<Select
+					id="client"
+					value={formData.client_id}
+					onChange={e => setFormData(prev => ({ ...prev, client_id: e.target.value }))}
+					options={clients.map(client => ({ value: client.id, label: client.name }))}
+					placeholder="클라이언트 선택"
+					label="클라이언트"
 					required
-					placeholder="(필수) 업무 제목을 입력해주세요."
 				/>
+				<Input id="manager" value={formData.manager} onChange={e => setFormData(prev => ({ ...prev, manager: e.target.value }))} placeholder="시월 담당자, 구분은 콤마로 구분" label="담당자" />
 			</div>
 
-			<div className="mb-6">
-				<textarea
-					id="description"
-					value={description}
-					onChange={e => setDescription(e.target.value)}
-					className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-					rows="6"
-					placeholder={`업무 설명을 입력해주세요.\n \n$ 중요하거나 업무 비중이 높은(돈되는) 업무는 앞에 '$'표기를 해서 표기\n$$ 존나 중요한 업무\n- 일반 업무는 '-' 표기로 구분해주세요.`}
-				/>
-			</div>
+			<RadioGroup
+				label="업무 카테고리"
+				required
+				value={formData.category}
+				onChange={handleCategoryButtonClick}
+				variant="dark"
+				className="mb-6"
+				options={[
+					{
+						value: 'operation',
+						label: '운영',
+						icon: <i className="fa-duotone fa-clipboard-list" />,
+						iconClassName: 'text-blue-400',
+					},
+					{
+						value: 'design',
+						label: '디자인',
+						icon: <i className="fa-duotone fa-paint-brush" />,
+						iconClassName: 'text-purple-400',
+					},
+					{
+						value: 'development',
+						label: '개발',
+						icon: <i className="fa-duotone fa-code" />,
+						iconClassName: 'text-green-400',
+					},
+				]}
+			/>
+
+			<Input id="title" value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="(필수) 업무 제목을 입력해주세요." required className="mb-2" />
+
+			<TextArea
+				id="description"
+				value={formData.description}
+				onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+				placeholder={`업무 설명을 입력해주세요.\n \n$ 중요하거나 업무 비중이 높은(돈되는) 업무는 앞에 '$'표기를 해서 표기\n$$ 존나 중요한 업무\n- 일반 업무는 '-' 표기로 구분해주세요.`}
+				rows={6}
+				className="mb-6"
+			/>
 
 			<div className="mb-6">
 				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">소요 시간 *</label>
 				<div className="flex gap-2">
-					<div className="w-full">
-						<input
-							id="timeValue"
-							type="number"
-							min="0.1"
-							step="0.1"
-							value={timeValue}
-							onChange={e => setTimeValue(e.target.value)}
-							className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-							required
-							placeholder="예: 2.5"
-						/>
-					</div>
-					<div id="selectTimeUnit" className="grid grid-flow-col auto-cols-fr items-center self-stretch rounded-lg bg-neutral-800 p-1 w-full">
-						<button
-							type="button"
-							onClick={() => setTimeUnit('hour')}
-							className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-9 ${
-								timeUnit === 'hour' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
-							}`}>
-							<div className="flex items-center gap-2">
-								<span className="text-blue-400">
-									<i className="fa-duotone fa-clock"></i>
-								</span>
-								<p>시간</p>
-							</div>
-						</button>
-						<button
-							type="button"
-							onClick={() => setTimeUnit('day')}
-							className={`flex items-center justify-center gap-2 rounded-lg bg-clip-border duration-200 ease-out border-none text-white px-3 h-9 ${
-								timeUnit === 'day' ? 'bg-neutral-950' : 'hover:bg-neutral-900'
-							}`}>
-							<div className="flex items-center gap-2">
-								<span className="text-green-400">
-									<i className="fa-duotone fa-calendar-day"></i>
-								</span>
-								<p>일</p>
-							</div>
-						</button>
-					</div>
-				</div>
-				<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{timeUnit === 'day' ? '1일 = 8시간으로 계산됩니다.' : ''}</p>
-			</div>
-
-			<div className="mb-6">
-				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="pricePerHour">
-					시간당 단가 (만원) *
-				</label>
-				<div className="relative">
-					<input
-						id="pricePerHour"
-						type="number"
-						min="0.1"
-						step="0.1"
-						value={pricePerHour}
-						onChange={e => setPricePerHour(e.target.value)}
-						className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200"
-						required
-						placeholder="예: 5.5"
+					<Input id="hours" type="number" min="0.1" step="0.1" value={formData.hours} onChange={e => setFormData(prev => ({ ...prev, hours: e.target.value }))} placeholder="예: 2.5" required />
+					<RadioGroup
+						value={formData.timeUnit}
+						onChange={value => setFormData(prev => ({ ...prev, timeUnit: value }))}
+						variant="dark"
+						className="flex-shrink-0"
+						options={[
+							{
+								value: 'hour',
+								label: '시간',
+								icon: <i className="fa-duotone fa-clock" />,
+								iconClassName: 'text-blue-400',
+							},
+							{
+								value: 'day',
+								label: '일',
+								icon: <i className="fa-duotone fa-calendar-day" />,
+								iconClassName: 'text-green-400',
+							},
+						]}
 					/>
-					{category && (
-						<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-							선택한 카테고리({categories.find(c => c.id === category)?.name})의 기본 단가: {categories.find(c => c.id === category)?.defaultPrice} 만원
-						</p>
-					)}
 				</div>
+				<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{formData.timeUnit === 'day' ? '1일 = 8시간으로 계산됩니다.' : ''}</p>
 			</div>
 
-			<div className="mb-6">
-				<label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="taskDate">
-					날짜
-				</label>
-				<div className="relative">
-					<input
-						id="taskDate"
-						type="date"
-						value={taskDate}
-						onChange={e => setTaskDate(e.target.value)}
-						className="appearance-none w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [&::-webkit-calendar-picker-indicator]:opacity-0"
-						onClick={e => e.target.showPicker()}
-					/>
-					<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-						<i className="fa-duotone fa-calendar-days"></i>
-					</div>
-				</div>
-			</div>
+			<Input
+				id="pricePerHour"
+				type="number"
+				min="0.1"
+				step="0.1"
+				value={formData.price_per_hour}
+				onChange={e => setFormData(prev => ({ ...prev, price_per_hour: e.target.value }))}
+				placeholder="예: 5.5"
+				required
+				label="시간당 단가 (만원) *"
+				className="mb-6"
+			/>
 
-			<div className="mb-8 p-4 bg-gray-100 dark:bg-dark-bg/60 rounded-lg">
+			<Input
+				id="taskDate"
+				type="date"
+				value={formData.task_date}
+				onChange={e => setFormData(prev => ({ ...prev, task_date: e.target.value }))}
+				label="날짜"
+				className="mb-6 [&::-webkit-calendar-picker-indicator]:opacity-0"
+				icon={<i className="fa-duotone fa-calendar-days" />}
+				onClick={e => e.target.showPicker()}
+			/>
+
+			<Card variant="subtle" className="mb-8">
 				<h3 className="font-semibold mb-2 dark:text-gray-200">총 가격</h3>
 				<p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{calculateTotalPrice().toLocaleString()}원</p>
 				<p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-					{timeUnit === 'day' ? `${timeValue || 0}일 x 8시간 x ${pricePerHour || 0}만원` : `${timeValue || 0}시간 x ${pricePerHour || 0}만원`}
+					{formData.timeUnit === 'day' ? `${formData.hours || 0}일 x 8시간 x ${formData.price_per_hour || 0}만원` : `${formData.hours || 0}시간 x ${formData.price_per_hour || 0}만원`}
 				</p>
-			</div>
+			</Card>
 
 			<div className="flex justify-between">
-				<button
-					type="button"
-					onClick={onCancel}
-					className="px-6 py-2 border border-gray-300 dark:border-dark-border rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border/40 transition duration-200">
+				<Button variant="secondary" onClick={onCancel}>
 					취소
-				</button>
-				<button
-					type="submit"
-					disabled={loading}
-					className={`px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+				</Button>
+				<Button type="submit" disabled={loading}>
 					{loading ? '등록 중...' : '업무 등록하기'}
-				</button>
+				</Button>
 			</div>
 		</form>
 	);
