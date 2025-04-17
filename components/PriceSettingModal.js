@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import Modal from './ui/Modal';
+import Input from './ui/Input';
+import Button from './ui/Button';
 
 export default function PriceSettingModal({ isOpen, onClose }) {
 	const [prices, setPrices] = useState({
-		operation: 25000,
-		design: 30000,
-		development: 50000,
+		operation: '',
+		design: '',
+		development: '',
 	});
-
 	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
+	const [isDataLoaded, setIsDataLoaded] = useState(false);
 
 	useEffect(() => {
-		fetchPrices();
-	}, []);
+		if (isOpen && !isDataLoaded) {
+			fetchPrices();
+		}
+	}, [isOpen]);
 
 	const fetchPrices = async () => {
 		try {
@@ -22,101 +28,97 @@ export default function PriceSettingModal({ isOpen, onClose }) {
 
 			if (data) {
 				setPrices({
-					operation: data.operation_price || 25000,
-					design: data.design_price || 30000,
-					development: data.development_price || 50000,
+					operation: (data.operation_price / 10000).toString(),
+					design: (data.design_price / 10000).toString(),
+					development: (data.development_price / 10000).toString(),
 				});
 			}
+			setIsDataLoaded(true);
 		} catch (error) {
 			console.error('Error fetching prices:', error);
+			setError('가격 정보를 불러오는 중 오류가 발생했습니다.');
 		}
 	};
 
-	const handleSave = async () => {
-		try {
-			setLoading(true);
-			const { error } = await supabase.from('settings').upsert({
-				id: 1, // 단일 설정 레코드 사용
-				operation_price: prices.operation,
-				design_price: prices.design,
-				development_price: prices.development,
-				updated_at: new Date(),
-			});
+	const handleSubmit = async e => {
+		e.preventDefault();
+		setLoading(true);
+		setError(null);
 
-			if (error) throw error;
+		try {
+			const { error: updateError } = await supabase
+				.from('settings')
+				.update({
+					operation_price: parseFloat(prices.operation) * 10000,
+					design_price: parseFloat(prices.design) * 10000,
+					development_price: parseFloat(prices.development) * 10000,
+				})
+				.eq('id', 1);
+
+			if (updateError) throw updateError;
 
 			onClose();
+			setIsDataLoaded(false);
 		} catch (error) {
-			console.error('Error saving prices:', error);
-			alert('설정 저장 중 오류가 발생했습니다.');
+			console.error('Error updating prices:', error);
+			setError('가격 설정 중 오류가 발생했습니다.');
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	if (!isOpen) return null;
-
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-			<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
-				<h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">시간당 단가 설정</h2>
+		<Modal isOpen={isOpen && isDataLoaded} onClose={onClose} title="시간당 단가 설정" className="w-full max-w-lg mx-4">
+			<form onSubmit={handleSubmit}>
+				{error && <div className="mb-4 text-sm text-red-600">{error}</div>}
 
 				<div className="space-y-4">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">운영 단가</label>
-						<div className="relative">
-							<input
-								type="number"
-								value={prices.operation / 10000}
-								onChange={e => setPrices(prev => ({ ...prev, operation: e.target.value * 10000 }))}
-								className="w-full px-4 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-							/>
-							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
-								<span className="text-gray-500 sm:text-sm">만원</span>
-							</div>
-						</div>
-					</div>
+					<Input
+						id="operation"
+						type="number"
+						value={prices.operation}
+						onChange={e => setPrices(prev => ({ ...prev, operation: e.target.value }))}
+						label="운영 단가 (만원)"
+						placeholder="예: 2.5"
+						required
+						min="0.1"
+						step="0.1"
+					/>
 
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">디자인 단가</label>
-						<div className="relative">
-							<input
-								type="number"
-								value={prices.design / 10000}
-								onChange={e => setPrices(prev => ({ ...prev, design: e.target.value * 10000 }))}
-								className="w-full px-4 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-							/>
-							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
-								<span className="text-gray-500 sm:text-sm">만원</span>
-							</div>
-						</div>
-					</div>
+					<Input
+						id="design"
+						type="number"
+						value={prices.design}
+						onChange={e => setPrices(prev => ({ ...prev, design: e.target.value }))}
+						label="디자인 단가 (만원)"
+						placeholder="예: 3"
+						required
+						min="0.1"
+						step="0.1"
+					/>
 
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">개발 단가</label>
-						<div className="relative">
-							<input
-								type="number"
-								value={prices.development / 10000}
-								onChange={e => setPrices(prev => ({ ...prev, development: e.target.value * 10000 }))}
-								className="w-full px-4 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-bg dark:border-dark-border dark:text-gray-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-							/>
-							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
-								<span className="text-gray-500 sm:text-sm">만원</span>
-							</div>
-						</div>
-					</div>
+					<Input
+						id="development"
+						type="number"
+						value={prices.development}
+						onChange={e => setPrices(prev => ({ ...prev, development: e.target.value }))}
+						label="개발 단가 (만원)"
+						placeholder="예: 5"
+						required
+						min="0.1"
+						step="0.1"
+					/>
 				</div>
 
 				<div className="mt-6 flex justify-end space-x-3">
-					<button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg rounded-md transition-colors">
+					<Button variant="secondary" onClick={onClose}>
 						취소
-					</button>
-					<button onClick={handleSave} disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50">
-						{loading ? '저장 중...' : '저장'}
-					</button>
+					</Button>
+					<Button type="submit" disabled={loading}>
+						{loading ? '저장 중...' : '저장하기'}
+					</Button>
 				</div>
-			</div>
-		</div>
+			</form>
+		</Modal>
 	);
 }

@@ -82,7 +82,7 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 								onClick={() => setClientModalOpen(true)}
 								className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 								<span className="mr-3">
-									<i className="fa-duotone fa-circle-plus text-xl"></i>
+									<i className="fa-duotone fa-user-plus text-xl"></i>
 								</span>
 								<span>클라이언트 등록</span>
 							</button>
@@ -95,7 +95,7 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 								onClick={() => setPriceModalOpen(true)}
 								className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 								<span className="mr-3">
-									<i className="fa-duotone fa-gear text-xl"></i>
+									<i className="fa-duotone fa-sliders-simple text-xl"></i>
 								</span>
 								<span>단가 설정</span>
 							</button>
