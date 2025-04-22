@@ -136,10 +136,14 @@ export default function ClientDetailDrawer({ isOpen, onClose, clientId }) {
 			if (remainingHours === 0) {
 				return `${days}일`;
 			} else {
-				return `${days}일 ${remainingHours}시간`;
+				// 소수점 첫째자리까지만 표시
+				const formattedHours = Number(remainingHours.toFixed(1));
+				return `${days}일 ${formattedHours}시간`;
 			}
 		} else {
-			return `${hours}시간`;
+			// 소수점 첫째자리까지만 표시
+			const formattedHours = Number(hours.toFixed(1));
+			return `${formattedHours}시간`;
 		}
 	};
 
