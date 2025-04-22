@@ -1,8 +1,8 @@
 name: D-ops Daily/Weekly Report
 on:
    schedule:
-      # 매일 오후 10시 (UTC+9 기준)
-      - cron: '0 13 * * *'
+      # 평일(월-금)만 오후 10시 (UTC+9 기준)
+      - cron: '0 13 * * 1-5'
       # 매주 월요일 오전 10시 (UTC+9 기준) - 이전 주 리포트
       - cron: '0 1 * * 1'
    # 수동 실행을 위한 워크플로우 디스패치 추가
