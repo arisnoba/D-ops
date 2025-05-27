@@ -438,54 +438,89 @@ export default function TaskList() {
 
 			{/* 모달 */}
 			{isModalOpen && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsModalOpen(false)}>
-					<div className="bg-white dark:bg-dark-card rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-						<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">정산 상태 변경 확인</h3>
-						<div className="text-gray-600 dark:text-gray-300 space-y-4 mb-6">
-							<div>
-								<span className="font-medium text-gray-900 dark:text-gray-100">
-									총 <span className="text-green-900 dark:text-green-500">{getSelectedTasksStatusCount().completed + getSelectedTasksStatusCount().pending}</span>개
-								</span>
-								의 업무를{' '}
-								<span className={`font-medium ${pendingSettlementStatus === 'completed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
-									정산 {pendingSettlementStatus === 'completed' ? '완료' : '대기'}
-								</span>{' '}
-								상태로 변경하시겠습니까?
-								{getSelectedTasksDateRange() && (
-									<div className="text-sm mt-1 opacity-60">
-										<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().oldestDate}</span>
-										{' 부터 '}
-										<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().latestDate}</span>의 업무
+				<div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50" onClick={() => setIsModalOpen(false)}>
+					<div className="flex items-center justify-center min-h-full p-4">
+						<div className="w-full max-w-2xl bg-white rounded-lg dark:bg-dark-card" onClick={e => e.stopPropagation()}>
+							<div className="p-6">
+								<h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">정산 상태 변경 확인</h3>
+								<div className="mb-6 space-y-4 text-gray-600 dark:text-gray-300">
+									<div>
+										<span className="font-medium text-gray-900 dark:text-gray-100">
+											총 <span className="text-green-900 dark:text-green-500">{getSelectedTasksStatusCount().completed + getSelectedTasksStatusCount().pending}</span>개
+										</span>
+										의 업무를{' '}
+										<span className={`font-medium ${pendingSettlementStatus === 'completed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+											정산 {pendingSettlementStatus === 'completed' ? '완료' : '대기'}
+										</span>{' '}
+										상태로 변경하시겠습니까?
+										{getSelectedTasksDateRange() && (
+											<div className="mt-1 text-sm opacity-60">
+												<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().oldestDate}</span>
+												{' 부터 '}
+												<span className="font-medium text-green-900 dark:text-green-500">{getSelectedTasksDateRange().latestDate}</span>의 업무
+											</div>
+										)}
 									</div>
-								)}
+
+									{/* 선택된 업무 내역 테이블 */}
+									<div className="mt-4">
+										<h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">변경될 업무 내역</h4>
+										<div className="overflow-hidden border rounded-lg border-neutral-50 dark:border-neutral-700">
+											<table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-500/70">
+												<thead className="bg-gray-50 dark:bg-neutral-950">
+													<tr>
+														<th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-200">클라이언트</th>
+														<th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-200">업무 제목</th>
+														<th className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-200">날짜</th>
+													</tr>
+												</thead>
+												<tbody className="bg-white divide-y divide-gray-200 dark:bg-dark-card dark:divide-neutral-700">
+													{filteredTasks
+														.filter(task => selectedTasks.has(task.id))
+														.map((task, index) => (
+															<tr key={task.id} className={index % 2 === 0 ? 'bg-white dark:bg-dark-card' : 'bg-gray-50 dark:bg-neutral-800'}>
+																<td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">{clients.find(c => c.id === task.client_id)?.name || '-'}</td>
+																<td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
+																	<div className="max-w-xs truncate" title={task.title}>
+																		{task.title}
+																	</div>
+																</td>
+																<td className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">{formatDate(new Date(task.task_date || task.created_at))}</td>
+															</tr>
+														))}
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+								<div className="flex justify-end space-x-3">
+									<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 transition-colors rounded-md dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg">
+										취소
+									</button>
+									<button
+										onClick={handleConfirmSettlement}
+										disabled={bulkActionLoading}
+										className={`px-4 py-2 text-white rounded-md transition-colors ${
+											pendingSettlementStatus === 'completed' ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'
+										} disabled:opacity-50`}>
+										확인
+									</button>
+								</div>
 							</div>
-						</div>
-						<div className="flex justify-end space-x-3">
-							<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg rounded-md transition-colors">
-								취소
-							</button>
-							<button
-								onClick={handleConfirmSettlement}
-								disabled={bulkActionLoading}
-								className={`px-4 py-2 text-white rounded-md transition-colors ${
-									pendingSettlementStatus === 'completed' ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'
-								} disabled:opacity-50`}>
-								확인
-							</button>
 						</div>
 					</div>
 				</div>
 			)}
 
-			<div className="h-full flex flex-col">
+			<div className="flex flex-col h-full">
 				{/* 필터 영역 */}
-				<div className="flex-none px-4 pt-4 pb-4 sticky top-0 z-10" id="filter-area">
-					<div className=" flex items-center justify-between">
+				<div className="sticky top-0 z-10 flex-none px-4 pt-4 pb-4" id="filter-area">
+					<div className="flex items-center justify-between ">
 						<div className="flex items-center">
 							{/* 일괄 처리 액션 바 */}
 							{isBulkActionsVisible && (
 								<div className="flex items-center justify-between mr-5">
-									<div className="flex items-center space-x-2 mr-4">
+									<div className="flex items-center mr-4 space-x-2">
 										{/* <input ref={checkboxRef} type="checkbox" checked={isAllSelected} onChange={handleSelectAll} /> */}
 										<span className="text-lg text-gray-600 dark:text-gray-300">
 											정산 대기 <span className="font-bold text-gray-900 dark:text-yellow-500">{getSelectedTasksStatusCount().pending}</span>개, 정산 완료{' '}
@@ -510,7 +545,7 @@ export default function TaskList() {
 							)}
 							{/* 정산 상태 필터 버튼 그룹 */}
 							{!isBulkActionsVisible && (
-								<div className="inline-flex rounded-lg bg-gray-100 dark:bg-neutral-900 p-1">
+								<div className="inline-flex p-1 bg-gray-100 rounded-lg dark:bg-neutral-900">
 									<button
 										onClick={() => setSettlementStatus('all')}
 										className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
@@ -532,7 +567,7 @@ export default function TaskList() {
 								</div>
 							)}
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 							<div>
 								<div className="relative">
 									<select
@@ -547,8 +582,8 @@ export default function TaskList() {
 											</option>
 										))}
 									</select>
-									<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-										<svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+									<div className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 pointer-events-none dark:text-gray-400">
+										<svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
 										</svg>
 									</div>
@@ -568,8 +603,8 @@ export default function TaskList() {
 											</option>
 										))}
 									</select>
-									<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
-										<svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+									<div className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 pointer-events-none dark:text-gray-400">
+										<svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
 										</svg>
 									</div>
@@ -580,44 +615,44 @@ export default function TaskList() {
 
 					{/* 월별 합계 정보 - 수정된 부분 */}
 					{monthlyTotal && (
-						<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm p-4 mt-4">
-							<h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+						<div className="p-4 mt-4 bg-white rounded-lg shadow-sm dark:bg-dark-card">
+							<h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
 								{selectedMonth !== 'all' ? formatMonth(selectedMonth) : ''}
 								{selectedClient !== 'all' ? clients.find(c => c.id.toString() === selectedClient)?.name : '전체'} 통계
 							</h3>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div className="rounded-lg overflow-hidden">
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div className="overflow-hidden rounded-lg">
 									{settlementStatus === 'all' && (
-										<div className="bg-gray-50 dark:bg-dark-bg  p-4">
-											<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 매출</p>
+										<div className="p-4 bg-gray-50 dark:bg-dark-bg">
+											<p className="mb-1 text-sm text-gray-500 dark:text-gray-400">총 매출</p>
 											<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{monthlyTotal.totalAmount.toLocaleString()}원</p>
 										</div>
 									)}
 
 									{(settlementStatus === 'all' || settlementStatus === 'pending') && (
 										<div className={`${settlementStatus === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-yellow-50/70 dark:bg-yellow-900/10'}  p-4`}>
-											<p className="text-sm text-yellow-600 dark:text-yellow-400 mb-1">정산 대기</p>
+											<p className="mb-1 text-sm text-yellow-600 dark:text-yellow-400">정산 대기</p>
 											<p className="text-xl font-semibold text-yellow-700 dark:text-yellow-300">{monthlyTotal.pendingAmount.toLocaleString()}원</p>
 										</div>
 									)}
 
 									{(settlementStatus === 'all' || settlementStatus === 'completed') && (
 										<div className={`${settlementStatus === 'completed' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-green-50/70 dark:bg-green-900/10'}  p-4`}>
-											<p className="text-sm text-green-600 dark:text-green-400 mb-1">정산 완료</p>
+											<p className="mb-1 text-sm text-green-600 dark:text-green-400">정산 완료</p>
 											<p className="text-xl font-semibold text-green-700 dark:text-green-300">{monthlyTotal.completedAmount.toLocaleString()}원</p>
 										</div>
 									)}
 
-									<div className="bg-gray-50 dark:bg-dark-bg  p-4">
-										<p className="text-sm text-gray-500 dark:text-gray-400 mb-1">총 작업시간</p>
+									<div className="p-4 bg-gray-50 dark:bg-dark-bg">
+										<p className="mb-1 text-sm text-gray-500 dark:text-gray-400">총 작업시간</p>
 										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{formatTimeUnit(monthlyTotal.totalHours)}</p>
 									</div>
 								</div>
-								<div className="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
-									<p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">담당자별 수익률</p>
+								<div className="p-4 rounded-lg bg-gray-50 dark:bg-dark-bg">
+									<p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">담당자별 수익률</p>
 									<div className="space-y-2">
 										{Object.entries(monthlyTotal.managerTotals).map(([manager, { amount, hours }]) => (
-											<div key={manager} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
+											<div key={manager} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
 												<span className="text-sm font-medium text-gray-700 dark:text-gray-300">{manager}</span>
 												<div className="text-right">
 													<p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{amount.toLocaleString()}원</p>
@@ -636,7 +671,7 @@ export default function TaskList() {
 
 				{/* 테이블 영역 */}
 				<div className="flex-1 overflow-hidden" id="task-table">
-					<div className="bg-white dark:bg-dark-card rounded-lg shadow-sm h-full flex flex-col">
+					<div className="flex flex-col h-full bg-white rounded-lg shadow-sm dark:bg-dark-card">
 						<div className="overflow-auto scrollbar-custom">
 							<style jsx>{`
 								.scrollbar-custom::-webkit-scrollbar {
@@ -661,44 +696,44 @@ export default function TaskList() {
 								}
 							`}</style>
 							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
-								<thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0 z-10">
+								<thead className="sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800">
 									<tr>
 										<th scope="col" className="px-4 py-3 text-left">
 											<div className="flex items-center">
 												<input ref={tableHeaderCheckboxRef} type="checkbox" checked={isAllSelected} onChange={handleSelectAll} />
 											</div>
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											정산 상태
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											클라이언트
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
 											업무
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											금액
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											카테고리
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											시간
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap text-right">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											단가
 										</th>
 
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											담당자
 										</th>
-										<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
 											날짜
 										</th>
 									</tr>
 								</thead>
-								<tbody className="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-dark-border">
+								<tbody className="bg-white divide-y divide-gray-200 dark:bg-dark-card dark:divide-dark-border">
 									{loading ? (
 										<tr>
 											<td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
@@ -732,29 +767,29 @@ export default function TaskList() {
 														{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
 													</span>
 												</td>
-												<td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{task.clients?.name}</td>
+												<td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-gray-100">{task.clients?.name}</td>
 												<td
 													id="tdSec"
-													className="px-4 py-3 relative group cursor-pointer"
+													className="relative px-4 py-3 cursor-pointer group"
 													onMouseEnter={e => handleDescriptionMouseEnter(e, task.description)}
 													onMouseLeave={handleDescriptionMouseLeave}>
 													<TaskDescription title={task.title} description={task.description} />
 												</td>
 												{/* 총금액 */}
-												<td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 text-right">{task.price?.toLocaleString()}원</td>
+												<td className="px-4 py-3 text-sm font-medium text-right text-blue-600 whitespace-nowrap dark:text-blue-400">{task.price?.toLocaleString()}원</td>
 												{/* 카테고리 */}
 												<td className="px-4 py-3 whitespace-nowrap">
 													<span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
 												</td>
 												{/* 시간 */}
-												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatTimeUnit(task.hours)}</td>
+												<td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">{formatTimeUnit(task.hours)}</td>
 												{/* 단가 */}
-												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
+												<td className="px-4 py-3 text-sm text-right text-gray-900 whitespace-nowrap dark:text-gray-100">
 													{task.price_per_hour ? `${(task.price_per_hour / 10000).toLocaleString()}만원` : '-'}
 												</td>
 
-												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-400">{task.manager || '-'}</td>
-												<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(task.task_date || task.created_at)}</td>
+												<td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap dark:text-gray-400">{task.manager || '-'}</td>
+												<td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">{formatDate(task.task_date || task.created_at)}</td>
 											</tr>
 										))
 									)}
