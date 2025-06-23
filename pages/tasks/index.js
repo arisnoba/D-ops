@@ -714,7 +714,7 @@ export default function TaskList() {
 							<table className="min-w-full align-middle">
 								<thead className="sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800">
 									<tr>
-										<th scope="col" className="p-4 w-px">
+										<th scope="col" className="p-4 py-3 w-px">
 											<div className="flex items-center">
 												<input
 													ref={tableHeaderCheckboxRef}
