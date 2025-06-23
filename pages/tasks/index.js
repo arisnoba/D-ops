@@ -140,6 +140,16 @@ export default function TaskList() {
 			filtered = filtered.filter(task => task.settlement_status === settlementStatus);
 		}
 
+		// 정산 완료 탭에서는 정산 완료일 순으로 정렬
+		if (settlementStatus === 'completed') {
+			filtered.sort((a, b) => {
+				// settlement_completed_at이 없는 경우를 대비하여 기본값 설정
+				const dateA = a.settlement_completed_at ? new Date(a.settlement_completed_at) : new Date(0);
+				const dateB = b.settlement_completed_at ? new Date(b.settlement_completed_at) : new Date(0);
+				return dateB - dateA;
+			});
+		}
+
 		setFilteredTasks(filtered);
 	}
 
@@ -350,7 +360,13 @@ export default function TaskList() {
 
 		try {
 			setBulkActionLoading(true);
-			const { error } = await supabase.from('tasks').update({ settlement_status: pendingSettlementStatus }).in('id', Array.from(selectedTasks));
+
+			const updateData = {
+				settlement_status: pendingSettlementStatus,
+				settlement_completed_at: pendingSettlementStatus === 'completed' ? new Date().toISOString() : null,
+			};
+
+			const { error } = await supabase.from('tasks').update(updateData).in('id', Array.from(selectedTasks));
 
 			if (error) throw error;
 
@@ -438,8 +454,8 @@ export default function TaskList() {
 
 			{/* 모달 */}
 			{isModalOpen && (
-				<div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50" onClick={() => setIsModalOpen(false)}>
-					<div className="flex items-center justify-center min-h-full p-4">
+				<div className="overflow-auto fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsModalOpen(false)}>
+					<div className="flex justify-center items-center p-4 min-h-full">
 						<div className="w-full max-w-2xl bg-white rounded-lg dark:bg-dark-card" onClick={e => e.stopPropagation()}>
 							<div className="p-6">
 								<h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">정산 상태 변경 확인</h3>
@@ -465,7 +481,7 @@ export default function TaskList() {
 									{/* 선택된 업무 내역 테이블 */}
 									<div className="mt-4">
 										<h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">변경될 업무 내역</h4>
-										<div className="overflow-hidden border rounded-lg border-neutral-50 dark:border-neutral-700">
+										<div className="overflow-hidden rounded-lg border border-neutral-50 dark:border-neutral-700">
 											<table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-500/70">
 												<thead className="bg-gray-50 dark:bg-neutral-950">
 													<tr>
@@ -494,7 +510,7 @@ export default function TaskList() {
 									</div>
 								</div>
 								<div className="flex justify-end space-x-3">
-									<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 transition-colors rounded-md dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg">
+									<button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-700 rounded-md transition-colors dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-bg">
 										취소
 									</button>
 									<button
@@ -515,11 +531,11 @@ export default function TaskList() {
 			<div className="flex flex-col h-full">
 				{/* 필터 영역 */}
 				<div className="sticky top-0 z-10 flex-none px-4 pt-4 pb-4" id="filter-area">
-					<div className="flex items-center justify-between ">
+					<div className="flex justify-between items-center">
 						<div className="flex items-center">
 							{/* 일괄 처리 액션 바 */}
 							{isBulkActionsVisible && (
-								<div className="flex items-center justify-between mr-5">
+								<div className="flex justify-between items-center mr-5">
 									<div className="flex items-center mr-4 space-x-2">
 										{/* <input ref={checkboxRef} type="checkbox" checked={isAllSelected} onChange={handleSelectAll} /> */}
 										<span className="text-lg text-gray-600 dark:text-gray-300">
@@ -531,13 +547,13 @@ export default function TaskList() {
 										<button
 											onClick={() => handleBulkSettlementClick('completed')}
 											disabled={bulkActionLoading}
-											className="bg-green-950 hover:bg-green-900 border border-green-800 hover:border-green-600 text-gray-300 py-1.5 px-3 rounded-lg shadow-md transition duration-200">
+											className="px-3 py-1.5 text-gray-300 rounded-lg border border-green-800 shadow-md transition duration-200 bg-green-950 hover:bg-green-900 hover:border-green-600">
 											완료로 변경
 										</button>
 										<button
 											onClick={() => handleBulkSettlementClick('pending')}
 											disabled={bulkActionLoading}
-											className="bg-yellow-950 hover:bg-yellow-900 border border-yellow-800 hover:border-yellow-600 text-gray-300 py-1.5 px-3 rounded-lg shadow-md transition duration-200">
+											className="px-3 py-1.5 text-gray-300 rounded-lg border border-yellow-800 shadow-md transition duration-200 bg-yellow-950 hover:bg-yellow-900 hover:border-yellow-600">
 											대기로 변경
 										</button>
 									</div>
@@ -574,7 +590,7 @@ export default function TaskList() {
 										id="client-filter"
 										value={selectedClient}
 										onChange={e => setSelectedClient(e.target.value)}
-										className="block w-full rounded-lg border-gray-300 dark:bg-dark-card shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
+										className="block py-2.5 pr-10 pl-4 w-full text-sm rounded-lg border-gray-300 shadow-sm appearance-none dark:bg-dark-card focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200">
 										<option value="all">모든 클라이언트</option>
 										{clients.map(client => (
 											<option key={client.id} value={client.id}>
@@ -582,7 +598,7 @@ export default function TaskList() {
 											</option>
 										))}
 									</select>
-									<div className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 pointer-events-none dark:text-gray-400">
+									<div className="flex absolute inset-y-0 right-0 items-center px-2 text-gray-500 pointer-events-none dark:text-gray-400">
 										<svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
 										</svg>
@@ -595,7 +611,7 @@ export default function TaskList() {
 										id="month-filter"
 										value={selectedMonth}
 										onChange={e => setSelectedMonth(e.target.value)}
-										className="block w-full rounded-lg border-gray-300 dark:bg-dark-card shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200 text-sm pl-4 pr-10 py-2.5 appearance-none">
+										className="block py-2.5 pr-10 pl-4 w-full text-sm rounded-lg border-gray-300 shadow-sm appearance-none dark:bg-dark-card focus:border-blue-500 focus:ring-blue-500 dark:text-gray-200">
 										<option value="all">모든 기간</option>
 										{months.map(month => (
 											<option key={month} value={month}>
@@ -603,7 +619,7 @@ export default function TaskList() {
 											</option>
 										))}
 									</select>
-									<div className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 pointer-events-none dark:text-gray-400">
+									<div className="flex absolute inset-y-0 right-0 items-center px-2 text-gray-500 pointer-events-none dark:text-gray-400">
 										<svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
 										</svg>
@@ -648,11 +664,11 @@ export default function TaskList() {
 										<p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{formatTimeUnit(monthlyTotal.totalHours)}</p>
 									</div>
 								</div>
-								<div className="p-4 rounded-lg bg-gray-50 dark:bg-dark-bg">
+								<div className="p-4 bg-gray-50 rounded-lg dark:bg-dark-bg">
 									<p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">담당자별 수익률</p>
 									<div className="space-y-2">
 										{Object.entries(monthlyTotal.managerTotals).map(([manager, { amount, hours }]) => (
-											<div key={manager} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
+											<div key={manager} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-dark-border last:border-0">
 												<span className="text-sm font-medium text-gray-700 dark:text-gray-300">{manager}</span>
 												<div className="text-right">
 													<p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{amount.toLocaleString()}원</p>
@@ -670,65 +686,58 @@ export default function TaskList() {
 				</div>
 
 				{/* 테이블 영역 */}
-				<div className="flex-1 overflow-hidden" id="task-table">
+				<div className="overflow-y-auto flex-1" id="task-table">
 					<div className="flex flex-col h-full bg-white rounded-lg shadow-sm dark:bg-dark-card">
-						<div className="overflow-auto scrollbar-custom">
-							<style jsx>{`
-								.scrollbar-custom::-webkit-scrollbar {
-									width: 8px;
-									height: 8px;
-								}
-								.scrollbar-custom::-webkit-scrollbar-track {
-									background: transparent;
-								}
-								.scrollbar-custom::-webkit-scrollbar-thumb {
-									background: #cbd5e1;
-									border-radius: 4px;
-								}
-								.scrollbar-custom::-webkit-scrollbar-thumb:hover {
-									background: #94a3b8;
-								}
-								:global(.dark) .scrollbar-custom::-webkit-scrollbar-thumb {
-									background: rgb(104, 104, 104);
-								}
-								:global(.dark) .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-									background: #64748b;
-								}
-							`}</style>
-							<table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border">
-								<thead className="sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800">
+						<div className="hidden overflow-x-auto md:block scrollbar-custom">
+							<table className="min-w-full align-middle">
+								<thead className="sticky top-0 z-10 bg-gray-50 dark:bg-dark-card-heavy">
 									<tr>
-										<th scope="col" className="px-4 py-3 text-left">
+										<th scope="col" className="p-4 w-px">
 											<div className="flex items-center">
-												<input ref={tableHeaderCheckboxRef} type="checkbox" checked={isAllSelected} onChange={handleSelectAll} />
+												<input
+													ref={tableHeaderCheckboxRef}
+													id="checkbox-all"
+													type="checkbox"
+													className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-dark-bg dark:border-dark-border"
+													checked={isAllSelected}
+													onChange={handleSelectAll}
+												/>
+												<label htmlFor="checkbox-all" className="sr-only">
+													checkbox
+												</label>
 											</div>
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
-											정산 상태
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+											상태
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										{settlementStatus === 'completed' && (
+											<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
+												정산 완료일
+											</th>
+										)}
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
 											클라이언트
 										</th>
 										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
 											업무
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											금액
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											카테고리
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											시간
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											단가
 										</th>
 
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											담당자
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 whitespace-nowrap">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											날짜
 										</th>
 									</tr>
@@ -736,13 +745,13 @@ export default function TaskList() {
 								<tbody className="bg-white divide-y divide-gray-200 dark:bg-dark-card dark:divide-dark-border">
 									{loading ? (
 										<tr>
-											<td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+											<td colSpan={settlementStatus === 'completed' ? 11 : 10} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
 												로딩 중...
 											</td>
 										</tr>
 									) : filteredTasks.length === 0 ? (
 										<tr>
-											<td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+											<td colSpan={settlementStatus === 'completed' ? 11 : 10} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
 												데이터가 없습니다
 											</td>
 										</tr>
@@ -754,9 +763,14 @@ export default function TaskList() {
 												className={`hover:bg-gray-50 dark:hover:bg-dark-bg/60 cursor-pointer transition-colors duration-150
 													${task.settlement_status === 'completed' ? 'opacity-60' : ''}
 													${selectedTasks.has(task.id) ? 'bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-50/70 dark:hover:bg-gray-900/70' : ''}`}>
-												<td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+												<td className="p-4 w-px" onClick={e => e.stopPropagation()}>
 													<div className="flex items-center">
-														<input type="checkbox" checked={selectedTasks.has(task.id)} onChange={e => handleSelectTask(e, task.id, index)} />
+														<input
+															type="checkbox"
+															checked={selectedTasks.has(task.id)}
+															onChange={e => handleSelectTask(e, task.id, index)}
+															className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-dark-bg dark:border-dark-border"
+														/>
 													</div>
 												</td>
 												<td className="px-4 py-3 whitespace-nowrap">
@@ -767,7 +781,12 @@ export default function TaskList() {
 														{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
 													</span>
 												</td>
-												<td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-gray-100">{task.clients?.name}</td>
+												{settlementStatus === 'completed' && (
+													<td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
+														{task.settlement_completed_at ? formatDate(task.settlement_completed_at) : '-'}
+													</td>
+												)}
+												<td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">{task.clients?.name}</td>
 												<td
 													id="tdSec"
 													className="relative px-4 py-3 cursor-pointer group"
@@ -795,6 +814,61 @@ export default function TaskList() {
 									)}
 								</tbody>
 							</table>
+						</div>
+						{/* Mobile View */}
+						<div className="grid grid-cols-1 gap-4 md:hidden">
+							{loading ? (
+								<div className="text-center text-gray-500 dark:text-gray-400">로딩 중...</div>
+							) : filteredTasks.length === 0 ? (
+								<div className="text-center text-gray-500 dark:text-gray-400">데이터가 없습니다</div>
+							) : (
+								filteredTasks.map((task, index) => (
+									<div
+										key={task.id}
+										className={`p-4 bg-white rounded-lg shadow-sm dark:bg-dark-card
+${task.settlement_status === 'completed' ? 'opacity-60' : ''}
+${selectedTasks.has(task.id) ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''}`}
+										onClick={() => handleTaskClick(task.id)}>
+										<div className="flex justify-between items-start">
+											<div className="flex items-start space-x-3">
+												<input
+													type="checkbox"
+													checked={selectedTasks.has(task.id)}
+													onChange={e => handleSelectTask(e, task.id, index)}
+													onClick={e => e.stopPropagation()}
+													className="mt-1"
+												/>
+												<div>
+													<div className="flex gap-2 items-center mb-2">
+														<span
+															className={`px-2 py-0.5 inline-flex text-xs leading-4 font-semibold rounded-full ${
+																task.settlement_status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+															}`}>
+															{task.settlement_status === 'completed' ? '정산 완료' : '정산 대기'}
+														</span>
+														<span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getCategoryStyle(task.category)}`}>{getCategoryName(task.category)}</span>
+													</div>
+													<p className="text-sm font-semibold text-gray-900 dark:text-white">{task.clients.name}</p>
+													<p className="text-sm text-gray-700 dark:text-gray-300">{task.title}</p>
+													{settlementStatus === 'completed' && task.settlement_completed_at && (
+														<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+															<span className="font-semibold">정산 완료:</span> {formatDate(task.settlement_completed_at)}
+														</p>
+													)}
+												</div>
+											</div>
+											<p className="text-lg font-bold text-right text-gray-900 dark:text-white">{task.price.toLocaleString()}원</p>
+										</div>
+										<div className="flex justify-between items-end mt-4">
+											<div className="text-sm text-gray-500 dark:text-gray-400">
+												<p>{task.manager}</p>
+												<p>{formatDate(task.task_date)}</p>
+											</div>
+											<p className="text-sm text-gray-500 dark:text-gray-400">{formatTimeUnit(task.hours)}</p>
+										</div>
+									</div>
+								))
+							)}
 						</div>
 					</div>
 				</div>
