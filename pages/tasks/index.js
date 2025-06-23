@@ -689,8 +689,30 @@ export default function TaskList() {
 				<div className="overflow-y-auto flex-1" id="task-table">
 					<div className="flex flex-col h-full bg-white rounded-lg shadow-sm dark:bg-dark-card">
 						<div className="hidden overflow-x-auto md:block scrollbar-custom">
+							<style jsx>{`
+								.scrollbar-custom::-webkit-scrollbar {
+									width: 8px;
+									height: 8px;
+								}
+								.scrollbar-custom::-webkit-scrollbar-track {
+									background: transparent;
+								}
+								.scrollbar-custom::-webkit-scrollbar-thumb {
+									background: #cbd5e1;
+									border-radius: 4px;
+								}
+								.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+									background: #94a3b8;
+								}
+								:global(.dark) .scrollbar-custom::-webkit-scrollbar-thumb {
+									background: rgb(104, 104, 104);
+								}
+								:global(.dark) .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+									background: #64748b;
+								}
+							`}</style>
 							<table className="min-w-full align-middle">
-								<thead className="sticky top-0 z-10 bg-gray-50 dark:bg-dark-card-heavy">
+								<thead className="sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800">
 									<tr>
 										<th scope="col" className="p-4 w-px">
 											<div className="flex items-center">
@@ -721,7 +743,7 @@ export default function TaskList() {
 										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
 											업무
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											금액
 										</th>
 										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
@@ -730,7 +752,7 @@ export default function TaskList() {
 										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											시간
 										</th>
-										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-left text-right text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
+										<th scope="col" className="px-4 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase whitespace-nowrap dark:text-gray-400">
 											단가
 										</th>
 
