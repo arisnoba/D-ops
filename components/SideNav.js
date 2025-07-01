@@ -41,9 +41,9 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 	};
 
 	return (
-		<div className="flex flex-col justify-between fixed top-0 left-0 h-screen w-48 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-dark-border">
+		<div className="flex fixed top-0 left-0 flex-col justify-between w-48 h-screen bg-white border-r border-gray-200 dark:bg-dark-bg dark:border-dark-border">
 			<div>
-				<div className="p-4 border-b border-gray-200 dark:border-dark-border flex items-center" style={{ height: '72px' }}>
+				<div className="flex items-center p-4 border-b border-gray-200 dark:border-dark-border" style={{ height: '72px' }}>
 					<h1 className="text-xl font-bold text-gray-800 dark:text-white">D:OPS</h1>
 				</div>
 
@@ -58,7 +58,7 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 											: 'hover:bg-gray-100 dark:hover:bg-dark-border/50'
 									}`}>
 									<span className="mr-3">
-										<i className="fa-duotone fa-house text-xl"></i>
+										<i className="text-xl fa-duotone fa-house"></i>
 									</span>
 									<span>대시보드</span>
 								</a>
@@ -68,10 +68,10 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 							<Link href="/tasks">
 								<a
 									className={`flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 ${
-										isActive('/tasks') ? 'bg-blue-50 dark:bg-dark-accent/10 text-blue-600 dark:text-dark-accent font-medium' : 'hover:bg-gray-100 dark:hover:bg-dark-border/50'
+										isActive('/tasks') ? 'font-medium text-blue-600 bg-blue-50 dark:bg-dark-accent/10 dark:text-dark-accent' : 'hover:bg-gray-100 dark:hover:bg-dark-border/50'
 									}`}>
 									<span className="mr-3">
-										<i className="fa-duotone fa-list-check text-xl"></i>
+										<i className="text-xl fa-duotone fa-list-check"></i>
 									</span>
 									<span>운영 업무</span>
 								</a>
@@ -81,12 +81,25 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 							<Link href="/clients">
 								<a
 									className={`flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 ${
-										isActive('/clients') ? 'bg-blue-50 dark:bg-dark-accent/10 text-blue-600 dark:text-dark-accent font-medium' : 'hover:bg-gray-100 dark:hover:bg-dark-border/50'
+										isActive('/clients') ? 'font-medium text-blue-600 bg-blue-50 dark:bg-dark-accent/10 dark:text-dark-accent' : 'hover:bg-gray-100 dark:hover:bg-dark-border/50'
 									}`}>
 									<span className="mr-3">
-										<i className="fa-duotone fa-building text-xl"></i>
+										<i className="text-xl fa-duotone fa-building"></i>
 									</span>
 									<span>클라이언트</span>
+								</a>
+							</Link>
+						</li>
+						<li>
+							<Link href="/expenses">
+								<a
+									className={`flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 ${
+										isActive('/expenses') ? 'font-medium text-blue-600 bg-blue-50 dark:bg-dark-accent/10 dark:text-dark-accent' : 'hover:bg-gray-100 dark:hover:bg-dark-border/50'
+									}`}>
+									<span className="mr-3">
+										<i className="text-xl fa-duotone fa-wallet"></i>
+									</span>
+									<span>지출 관리</span>
 								</a>
 							</Link>
 						</li>
@@ -95,15 +108,15 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 
 				{(showTaskActions || showClientActions) && (
 					<div className="py-4 border-t border-gray-200 dark:border-dark-border">
-						<h3 className="px-4 mb-2 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">작업</h3>
+						<h3 className="px-4 mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">작업</h3>
 						<ul className="space-y-1">
 							{showTaskActions && (
 								<li>
 									<button
 										onClick={() => setTaskModalOpen(true)}
-										className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+										className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 										<span className="mr-3">
-											<i className="fa-duotone fa-circle-plus text-xl"></i>
+											<i className="text-xl fa-duotone fa-circle-plus"></i>
 										</span>
 										<span>업무 등록</span>
 									</button>
@@ -113,9 +126,9 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 								<li>
 									<button
 										onClick={() => setClientModalOpen(true)}
-										className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+										className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 										<span className="mr-3">
-											<i className="fa-duotone fa-user-plus text-xl"></i>
+											<i className="text-xl fa-duotone fa-user-plus"></i>
 										</span>
 										<span>클라이언트 등록</span>
 									</button>
@@ -127,14 +140,14 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 
 				{showSettings && (
 					<div className="py-4 border-t border-gray-200 dark:border-dark-border">
-						<h3 className="px-4 mb-2 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">Settings</h3>
+						<h3 className="px-4 mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">Settings</h3>
 						<ul className="space-y-1">
 							<li>
 								<button
 									onClick={() => setPriceModalOpen(true)}
-									className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+									className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
 									<span className="mr-3">
-										<i className="fa-duotone fa-sliders-simple text-xl"></i>
+										<i className="text-xl fa-duotone fa-sliders-simple"></i>
 									</span>
 									<span>운영 단가 설정</span>
 								</button>
@@ -144,12 +157,12 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 				)}
 			</div>
 
-			<div className="border-t border-gray-200 dark:border-dark-border p-4">
+			<div className="p-4 border-t border-gray-200 dark:border-dark-border">
 				{user && (
 					<div className="flex flex-col">
-						<span className="text-xs text-gray-600 dark:text-gray-300 truncate mb-2">{user.email}</span>
-						<button onClick={handleLogout} className="text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-left flex items-center">
-							<i className="fa-duotone fa-sign-out-alt mr-1"></i>
+						<span className="mb-2 text-xs text-gray-600 truncate dark:text-gray-300">{user.email}</span>
+						<button onClick={handleLogout} className="flex items-center text-sm text-left text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+							<i className="mr-1 fa-duotone fa-sign-out-alt"></i>
 							로그아웃
 						</button>
 					</div>
