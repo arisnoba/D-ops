@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Development Guidelines & Best Practices
+
+## Code Style Standards
+- **Language**: Korean for user-facing text, English for code/comments
+- **Formatting**: Use Prettier/ESLint configurations
+- **File Naming**: kebab-case for files, PascalCase for components
+- **Import Order**: External libraries → Internal modules → Relative imports
+
+## Component Development Patterns
+- **Functional Components**: Use hooks over class components
+- **Props Destructuring**: Destructure props in function signature
+- **Default Props**: Use default parameters in function signature
+- **Event Handlers**: Prefix with 'handle' (handleSubmit, handleClose)
+
+## State Management Rules
+- **Local State**: useState for component-specific data
+- **Derived State**: Calculate from props/state, don't store separately
+- **Effect Dependencies**: Always include all dependencies in useEffect
+- **Cleanup**: Remove event listeners and cancel requests in useEffect cleanup
+
+## Error Handling Patterns
+```javascript
+try {
+  const { data, error } = await supabase.from('table').select();
+  if (error) throw error;
+  // Handle success
+} catch (error) {
+  console.error('Error context:', error.message);
+  // Show user-friendly error message
+}
+```
+
+## Performance Considerations
+- **Lazy Loading**: Use dynamic imports for heavy components
+- **Memoization**: Use React.memo for expensive renders
+- **Database Queries**: Minimize queries with proper joins
+- **Image Optimization**: Use Next.js Image component when needed
+
+## Testing Approach
+- **Manual Testing**: Test all CRUD operations after changes
+- **Cross-browser**: Ensure dark mode works across browsers
+- **Mobile Testing**: Test responsive behavior on mobile devices
+- **Data Validation**: Validate all form inputs on client and server
+
+## Security Guidelines
+- **Input Validation**: Validate all user inputs
+- **XSS Prevention**: Use React's built-in XSS protection
+- **Authentication**: Check auth state before sensitive operations
+- **Environment Variables**: Never commit secrets to version control

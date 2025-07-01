@@ -1,0 +1,44 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Architecture Patterns & Code Organization
+
+## Component Architecture
+- **Layout System**: Fixed sidebar navigation with dynamic content area
+- **Modal-Based Forms**: All CRUD operations use modal overlays for better UX
+- **Reusable UI Components**: Located in [components/ui/](mdc:components/ui) directory
+- **Business Components**: Domain-specific components in [components/](mdc:components) root
+
+## File Organization Patterns
+```
+pages/           # Next.js pages (routes)
+components/      # Business logic components
+  ui/           # Reusable UI primitives
+context/        # React context providers
+lib/            # Utilities and configurations
+styles/         # Global styles and CSS
+```
+
+## State Management Patterns
+- **Local State**: useState for component-specific state
+- **Global Auth**: Context API in [context/AuthContext.js](mdc:context/AuthContext.js)
+- **Server State**: Direct Supabase queries with useEffect patterns
+- **Form State**: Controlled components with validation
+
+## Data Flow Patterns
+1. **Page Components**: Fetch data and manage high-level state
+2. **Business Components**: Handle specific domain logic
+3. **UI Components**: Pure presentation with props
+4. **Database Layer**: Supabase client in [lib/supabase.js](mdc:lib/supabase.js)
+
+## Modal Management Pattern
+- Modals are controlled at the Layout level
+- Props drilling for modal state management
+- Consistent modal structure using [components/Modal.js](mdc:components/Modal.js)
+
+## Navigation Pattern
+- Dynamic sidebar menu based on current route
+- Route-based feature visibility in [components/SideNav.js](mdc:components/SideNav.js)
+- Protected routes with authentication wrapper

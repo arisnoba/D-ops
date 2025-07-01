@@ -1,0 +1,66 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Common Development Tasks & Workflows
+
+## Adding New Features
+1. **Database Changes**: Update schema in Supabase console first
+2. **Component Creation**: Create in appropriate directory (ui/ vs business logic)
+3. **Styling**: Use existing color system and component patterns
+4. **Testing**: Test CRUD operations and responsive behavior
+
+## Form Development Pattern
+Reference [components/TaskForm.js](mdc:components/TaskForm.js) and [components/ClientForm.js](mdc:components/ClientForm.js)
+
+```javascript
+// Standard form structure
+const [formData, setFormData] = useState(initialState);
+const [loading, setLoading] = useState(false);
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    // Supabase operation
+    onSuccess(); // Callback to parent
+  } catch (error) {
+    // Error handling
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+## Modal Integration Pattern
+1. **State Management**: Control modal state in parent component
+2. **Props Pattern**: Pass onSuccess, onCancel, and data props
+3. **Form Integration**: Use existing form components inside modals
+4. **Cleanup**: Reset form state when modal closes
+
+## Dashboard Analytics Pattern
+Reference [pages/dashboard.js](mdc:pages/dashboard.js) for chart implementation
+
+1. **Data Processing**: Group and aggregate data by required dimensions
+2. **Chart Configuration**: Use consistent color scheme from design system
+3. **Responsive Charts**: Ensure charts work on mobile devices
+4. **Performance**: Process data efficiently with proper filtering
+
+## Adding New Pages
+1. **Page Creation**: Create in [pages/](mdc:pages) directory
+2. **Layout Integration**: Wrap with Layout component
+3. **Navigation**: Update [components/SideNav.js](mdc:components/SideNav.js)
+4. **Protection**: Add to protected routes if authentication required
+
+## Database Query Optimization
+- **Select Specific Fields**: Don't use `select('*')` unless necessary
+- **Use Joins**: Fetch related data in single query
+- **Filter Early**: Apply filters at database level
+- **Pagination**: Implement for large datasets
+
+## Debugging Common Issues
+- **Dark Mode**: Check if styles work in both light/dark modes
+- **Authentication**: Verify RLS policies are working correctly
+- **Form Validation**: Test edge cases and error states
+- **Mobile Layout**: Test on various screen sizes

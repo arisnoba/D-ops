@@ -1,0 +1,59 @@
+---
+description: 
+globs: **/*.js, lib/**/*
+alwaysApply: false
+---
+# Data Patterns & Database Integration
+
+## Database Schema Understanding
+Reference [clients_table.sql](mdc:clients_table.sql) and [supabase_rls_policies.sql](mdc:supabase_rls_policies.sql)
+
+### Core Tables
+```sql
+clients (
+  id, name, description, 
+  contact_person, contact_email, contact_phone,
+  created_at
+)
+
+tasks (
+  id, title, description, category,
+  hours, price_per_hour, price,
+  client_id, settlement_status, created_at
+)
+```
+
+## Data Fetching Patterns
+- **Supabase Client**: Configured in [lib/supabase.js](mdc:lib/supabase.js)
+- **Joins**: Use `.select()` with relationship syntax for client data
+- **Filtering**: Year-based filtering for dashboard analytics
+- **Sorting**: Consistent ordering by created_at desc
+
+## Common Query Patterns
+```javascript
+// Fetch tasks with client information
+const { data } = await supabase
+  .from('tasks')
+  .select(`
+    *,
+    clients:client_id (id, name)
+  `)
+  .order('created_at', { ascending: false });
+```
+
+## Data Processing Patterns
+- **Time Formatting**: Use `formatTimeUnit()` function with 1 decimal place
+- **Price Calculations**: Automatic calculation (hours × price_per_hour)
+- **Category Grouping**: Group by category for analytics
+- **Client Aggregation**: Sum hours/revenue by client
+
+## State Management for Data
+- **Loading States**: Always show loading indicators during async operations
+- **Error Handling**: Try-catch blocks with user-friendly error messages
+- **Data Refresh**: Event-driven updates using CustomEvent for task updates
+- **Optimistic Updates**: Update UI immediately, sync with server
+
+## Security Patterns
+- **RLS Policies**: All queries automatically filtered by authentication
+- **Environment Variables**: Supabase keys in environment variables
+- **No Direct SQL**: Always use Supabase client methods

@@ -1,0 +1,55 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# D-ops Development Rules
+
+## Overview
+This is the main entry point for D-ops project development rules. These rules are designed to help AI assistants understand the codebase structure, patterns, and best practices for effective code generation and modification.
+
+## Rule Structure
+The rules are organized into focused modules for better maintainability and clarity:
+
+### 🏗️ [Project Overview](mdc:.cursor/rules/project-overview.mdc)
+Essential context about the D-ops application, its purpose, core business logic, and technology stack. Start here for understanding the project's scope and main entry points.
+
+### 🎯 [Architecture Patterns](mdc:.cursor/rules/architecture-patterns.mdc)
+Code organization principles, component architecture, state management patterns, and data flow. Critical for understanding how to structure new features and maintain consistency.
+
+### 🎨 [Styling System](mdc:.cursor/rules/styling-system.mdc)
+Complete design token system, color schemes, component styling patterns, and responsive design guidelines. Essential for maintaining visual consistency.
+
+### 💾 [Data Patterns](mdc:.cursor/rules/data-patterns.mdc)
+Database schema understanding, data fetching patterns, query optimization, and security considerations. Key for any database-related operations.
+
+### 📋 [Development Guidelines](mdc:.cursor/rules/development-guidelines.mdc)
+Code style standards, component development patterns, error handling, performance considerations, and security guidelines. Follow these for code quality.
+
+### 🔧 [Common Tasks](mdc:.cursor/rules/common-tasks.mdc)
+Step-by-step workflows for frequent development tasks like adding features, creating forms, integrating modals, and debugging common issues.
+
+## Quick Reference
+- **Default Theme**: Dark mode with custom color system
+- **Primary Colors**: Blue for operations, Purple for design, Green for development
+- **Form Pattern**: Modal-based with loading states and error handling
+- **Data Layer**: Supabase with RLS policies
+- **Authentication**: Required for all main features
+- **Responsive**: Mobile-first with fixed sidebar navigation
+
+## AI Assistant Instructions
+When working on this codebase:
+1. Always reference the relevant rule files for context
+2. Follow the established patterns and conventions
+3. Maintain consistency with existing code style
+4. Test dark mode compatibility for all UI changes
+5. Ensure mobile responsiveness for new components
+6. Validate database operations follow security patterns
+
+## Getting Started
+For new features or modifications:
+1. Read [Project Overview](mdc:.cursor/rules/project-overview.mdc) for context
+2. Check [Architecture Patterns](mdc:.cursor/rules/architecture-patterns.mdc) for structure guidance
+3. Follow [Common Tasks](mdc:.cursor/rules/common-tasks.mdc) for implementation workflows
+4. Apply [Styling System](mdc:.cursor/rules/styling-system.mdc) for consistent UI
+5. Use [Data Patterns](mdc:.cursor/rules/data-patterns.mdc) for database operations

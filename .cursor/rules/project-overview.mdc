@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# D-ops Project Overview
+
+## Project Purpose
+D-ops is a comprehensive business operations management system for tracking design, development, and operational tasks with automatic pricing calculations and client management capabilities.
+
+## Core Business Logic
+- **Task Management**: Record work hours across three categories (design, development, operation)
+- **Client Management**: Maintain client information and associate tasks with specific clients
+- **Pricing System**: Automatic price calculation based on category-specific hourly rates
+- **Settlement Tracking**: Manage payment status from pending to completed
+- **Analytics Dashboard**: Visual reports showing revenue, hours, and task distribution
+
+## Key Entry Points
+- Main application: [pages/_app.js](mdc:pages/_app.js)
+- Dashboard: [pages/dashboard.js](mdc:pages/dashboard.js) 
+- Task management: [pages/tasks/index.js](mdc:pages/tasks/index.js)
+- Client management: [pages/clients/index.js](mdc:pages/clients/index.js)
+- Authentication: [pages/login.js](mdc:pages/login.js)
+
+## Database Schema
+- **clients**: Client information and contact details
+- **tasks**: Work records with hours, pricing, and settlement status
+- **Authentication**: Handled by Supabase Auth with RLS policies
+
+## Technology Context
+- Frontend: Next.js 12.3.4 with React 17.0.2
+- Styling: TailwindCSS with dark mode as default
+- Database: Supabase (PostgreSQL)
+- Charts: Chart.js for data visualization
+- Authentication: Supabase Auth with Row Level Security
