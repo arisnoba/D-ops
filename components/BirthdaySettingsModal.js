@@ -126,23 +126,6 @@ export default function BirthdaySettingsModal({ isOpen, onClose, users }) {
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="생일 설정">
 			<div className="space-y-6">
-				{/* 설명 */}
-				<div className="p-4 rounded-lg border bg-blue-900/30 border-blue-500/30">
-					<div className="text-sm text-blue-400">
-						<div className="mb-2 font-medium">생일 축하금 자동 생성 안내</div>
-						<ul className="space-y-1 text-xs">
-							<li>• 매월 1일에 해당 월의 생일자가 있는지 자동으로 확인합니다.</li>
-							<li>
-								• <strong>설정 금액은 생일자가 받을 총 축하금입니다</strong>
-							</li>
-							<li>• 생일자는 설정된 금액만큼 받습니다 (음수로 표시)</li>
-							<li>• 나머지 인원은 총 축하금을 더치페이로 나눠서 지불합니다</li>
-							<li>• 예: 총 축하금 240,000원 → 생일자 -240,000원, 나머지 4명이 각각 +60,000원</li>
-							<li>• 생성된 생일 축하금은 수정/삭제가 가능합니다</li>
-						</ul>
-					</div>
-				</div>
-
 				{loading ? (
 					<div className="text-center text-gray-400">로딩 중...</div>
 				) : (

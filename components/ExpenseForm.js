@@ -15,8 +15,6 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 	const [dutchPayAmount, setDutchPayAmount] = useState('');
 	const [dutchPayParticipants, setDutchPayParticipants] = useState(users.reduce((acc, user) => ({ ...acc, [user]: true }), {}));
 	const [titleSuggestions, setTitleSuggestions] = useState([]);
-	const [birthdaySettings, setBirthdaySettings] = useState([]);
-	const [selectedBirthdayUser, setSelectedBirthdayUser] = useState('');
 
 	// 초기 데이터 설정
 	useEffect(() => {
@@ -48,21 +46,6 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 		};
 
 		loadTitleSuggestions();
-	}, []);
-
-	// 생일 설정 로드
-	useEffect(() => {
-		const loadBirthdaySettings = async () => {
-			try {
-				const { data, error } = await supabase.from('birthday_settings').select('*').order('user_name');
-				if (error) throw error;
-				setBirthdaySettings(data || []);
-			} catch (error) {
-				console.error('생일 설정 로드 실패:', error);
-			}
-		};
-
-		loadBirthdaySettings();
 	}, []);
 
 	// 총액 계산
@@ -149,43 +132,6 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 		}));
 	};
 
-	// 생일 축하금 적용 (새로운 로직: 생일자는 총액을 받고, 나머지가 나눠서 지불)
-	const applyBirthdayAmount = () => {
-		if (!selectedBirthdayUser) {
-			alert('생일자를 선택해주세요.');
-			return;
-		}
-
-		const birthdaySetting = birthdaySettings.find(setting => setting.user_name === selectedBirthdayUser);
-		if (!birthdaySetting) {
-			alert('선택한 사용자의 생일 설정을 찾을 수 없습니다.');
-			return;
-		}
-
-		const totalAmount = birthdaySetting.amount; // 생일자가 받을 총 축하금
-		const otherUsers = users.filter(user => user !== selectedBirthdayUser);
-		const amountPerPerson = Math.round(totalAmount / otherUsers.length); // 나머지가 나눠서 낼 금액
-
-		const newAmounts = users.reduce((acc, user) => {
-			if (user === selectedBirthdayUser) {
-				acc[user] = -totalAmount; // 생일자는 받는 금액 (음수)
-			} else {
-				acc[user] = amountPerPerson; // 나머지는 나눠서 내는 금액
-			}
-			return acc;
-		}, {});
-
-		// 제목도 자동으로 설정
-		const birthdayTitle = `${selectedBirthdayUser} 생일 축하금`;
-
-		setFormData(prev => ({
-			...prev,
-			title: birthdayTitle,
-			userAmounts: newAmounts,
-			total: calculateTotal(newAmounts),
-		}));
-	};
-
 	// 폼 제출
 	const handleSubmit = e => {
 		e.preventDefault();
@@ -216,46 +162,35 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
 			{/* 기본 정보 */}
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
-					<label className="block text-sm font-medium text-gray-300 mb-2">날짜</label>
+					<label className="block mb-2 text-sm font-medium text-gray-300">날짜</label>
 					<input
 						type="date"
 						value={formData.date}
 						onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-						className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+						className="px-3 py-2 w-full text-white bg-gray-800 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
 						required
 					/>
 				</div>
 
 				<div>
-					<label className="block text-sm font-medium text-gray-300 mb-2">지출 유형</label>
-					<div className="flex space-x-4">
-						{['식대', '기타', '생일'].map(type => (
-							<label key={type} className="flex items-center">
-								<input
-									type="radio"
-									name="type"
-									value={type}
-									checked={formData.type === type}
-									onChange={e => {
-										const newType = e.target.value;
-										setFormData(prev => ({
-											...prev,
-											type: newType,
-											// 생일 타입 선택 시 결제자 초기화
-											payer: newType === '생일' ? '' : prev.payer,
-										}));
-										// 생일 타입 변경 시 더치페이 모드도 초기화
-										if (newType === '생일') {
-											setIsDutchPay(false);
-											setSelectedBirthdayUser('');
-										}
-									}}
-									className="mr-2"
-								/>
-								<span className="text-white">{type}</span>
-							</label>
+					<label className="block mb-2 text-sm font-medium text-gray-300">지출 유형</label>
+					<div className="flex p-1 space-x-2 bg-gray-100 rounded-lg dark:bg-neutral-900">
+						{['식대', '기타'].map(type => (
+							<button
+								key={type}
+								type="button"
+								onClick={() => {
+									setFormData(prev => ({
+										...prev,
+										type: type,
+									}));
+								}}
+								className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
+									${formData.type === type ? 'bg-white dark:bg-neutral-950 shadow text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+								{type}
+							</button>
 						))}
 					</div>
 				</div>
@@ -263,13 +198,13 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 
 			{/* 제목 */}
 			<div>
-				<label className="block text-sm font-medium text-gray-300 mb-2">제목</label>
+				<label className="block mb-2 text-sm font-medium text-gray-300">제목</label>
 				<input
 					type="text"
 					value={formData.title}
 					onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
 					list="title-suggestions"
-					className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+					className="px-3 py-2 w-full text-white bg-gray-800 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
 					placeholder="지출 제목을 입력하세요"
 					required
 				/>
@@ -280,107 +215,47 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 				</datalist>
 			</div>
 
-			{/* 결제자 선택 (생일 타입이 아닌 경우만) */}
-			{formData.type !== '생일' && (
-				<div>
-					<label className="block text-sm font-medium text-gray-300 mb-2">결제자 (선택사항)</label>
-					<select
-						value={formData.payer}
-						onChange={e => handlePayerChange(e.target.value)}
-						className="w-full px-3 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
-						<option value="">결제자 없음</option>
-						{users.map(user => (
-							<option key={user} value={user}>
-								{user}
-							</option>
-						))}
-					</select>
-				</div>
-			)}
+			{/* 결제자 선택 */}
+			<div>
+				<label className="block mb-2 text-sm font-medium text-gray-300">결제자 (선택사항)</label>
+				<select
+					value={formData.payer}
+					onChange={e => handlePayerChange(e.target.value)}
+					className="px-3 py-2 w-full text-white bg-gray-800 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+					<option value="">결제자 없음</option>
+					{users.map(user => (
+						<option key={user} value={user}>
+							{user}
+						</option>
+					))}
+				</select>
+			</div>
 
-			{/* 더치페이 토글 (생일 타입이 아닌 경우만) */}
-			{formData.type !== '생일' && (
-				<div className="flex items-center space-x-4">
-					<label className="flex items-center">
-						<input type="checkbox" checked={isDutchPay} onChange={handleDutchPayToggle} className="mr-2" />
-						<span className="text-white">더치페이 모드</span>
-					</label>
-				</div>
-			)}
-
-			{/* 생일 축하금 설정 */}
-			{formData.type === '생일' && (
-				<div className="bg-purple-900/30 border border-purple-500/30 rounded-lg p-4 space-y-4">
-					<div className="text-purple-400 text-sm font-medium">생일 축하금 설정</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-300 mb-2">생일자 선택</label>
-						<select
-							value={selectedBirthdayUser}
-							onChange={e => setSelectedBirthdayUser(e.target.value)}
-							className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500">
-							<option value="">생일자를 선택하세요</option>
-							{users.map(user => {
-								const setting = birthdaySettings.find(s => s.user_name === user);
-								return (
-									<option key={user} value={user}>
-										{user} {setting ? `(${setting.amount.toLocaleString()}원)` : '(설정 없음)'}
-									</option>
-								);
-							})}
-						</select>
-					</div>
-					{selectedBirthdayUser && (
-						<div className="space-y-2">
-							{(() => {
-								const setting = birthdaySettings.find(s => s.user_name === selectedBirthdayUser);
-								if (!setting) return <div className="text-red-400 text-sm">선택한 사용자의 생일 설정이 없습니다.</div>;
-
-								const totalAmount = setting.amount;
-								const otherUsers = users.filter(user => user !== selectedBirthdayUser);
-								const amountPerPerson = Math.round(totalAmount / otherUsers.length);
-
-								return (
-									<div className="text-sm text-gray-400">
-										<div>• 총 축하금: {totalAmount.toLocaleString()}원</div>
-										<div>
-											• 개별 분담: {amountPerPerson.toLocaleString()}원 × {otherUsers.length}명
-										</div>
-										<div>
-											• {selectedBirthdayUser}: -{totalAmount.toLocaleString()}원 (받음)
-										</div>
-										<div>• 나머지: 각각 +{amountPerPerson.toLocaleString()}원</div>
-									</div>
-								);
-							})()}
-						</div>
-					)}
-					<button
-						type="button"
-						onClick={applyBirthdayAmount}
-						disabled={!selectedBirthdayUser}
-						className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-						생일 축하금 적용
-					</button>
-				</div>
-			)}
+			{/* 더치페이 토글 */}
+			<div className="flex items-center space-x-4">
+				<label className="flex items-center">
+					<input type="checkbox" checked={isDutchPay} onChange={handleDutchPayToggle} className="mr-2" />
+					<span className="text-white">더치페이 모드</span>
+				</label>
+			</div>
 
 			{/* 더치페이 설정 */}
-			{isDutchPay && formData.type !== '생일' && (
-				<div className="bg-gray-800 p-4 rounded-lg space-y-4">
+			{isDutchPay && (
+				<div className="p-4 space-y-4 bg-gray-800 rounded-lg">
 					<div>
-						<label className="block text-sm font-medium text-gray-300 mb-2">총 금액</label>
+						<label className="block mb-2 text-sm font-medium text-gray-300">총 금액</label>
 						<input
 							type="number"
 							value={dutchPayAmount}
 							onChange={e => setDutchPayAmount(e.target.value)}
-							className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+							className="px-3 py-2 w-full text-white bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
 							placeholder="총 금액을 입력하세요"
 						/>
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-300 mb-2">참여자 선택</label>
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+						<label className="block mb-2 text-sm font-medium text-gray-300">참여자 선택</label>
+						<div className="grid grid-cols-2 gap-2 md:grid-cols-3">
 							{users.map(user => (
 								<label key={user} className="flex items-center">
 									<input
@@ -400,7 +275,7 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 						</div>
 					</div>
 
-					<button type="button" onClick={applyDutchPay} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+					<button type="button" onClick={applyDutchPay} className="px-4 py-2 text-white bg-blue-600 rounded-lg transition-colors hover:bg-blue-700">
 						금액 분배 적용
 					</button>
 				</div>
@@ -408,11 +283,11 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 
 			{/* 사용자별 금액 입력 */}
 			<div>
-				<label className="block text-sm font-medium text-gray-300 mb-2">사용자별 금액</label>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<label className="block mb-2 text-sm font-medium text-gray-300">사용자별 금액</label>
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					{users.map(user => (
 						<div key={user}>
-							<label className="block text-sm text-gray-400 mb-1">
+							<label className="block mb-1 text-sm text-gray-400">
 								{user} {formData.payer === user && '(결제자)'}
 							</label>
 							<input
@@ -431,19 +306,19 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 			</div>
 
 			{/* 총액 표시 */}
-			<div className="bg-gray-800 p-4 rounded-lg">
+			<div className="p-4 bg-gray-800 rounded-lg">
 				<div className="text-center">
-					<div className="text-gray-400 text-sm">총액</div>
+					<div className="text-sm text-gray-400">총액</div>
 					<div className="text-2xl font-bold text-white">{formData.total.toLocaleString()}원</div>
 				</div>
 			</div>
 
 			{/* 버튼 */}
 			<div className="flex justify-end space-x-3">
-				<button type="button" onClick={onCancel} className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+				<button type="button" onClick={onCancel} className="px-6 py-2 text-white bg-gray-600 rounded-lg transition-colors hover:bg-gray-700">
 					취소
 				</button>
-				<button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+				<button type="submit" className="px-6 py-2 text-white bg-blue-600 rounded-lg transition-colors hover:bg-blue-700">
 					{initialData ? '수정' : '추가'}
 				</button>
 			</div>
