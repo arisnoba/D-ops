@@ -12,7 +12,7 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 	});
 
 	const [isDutchPay, setIsDutchPay] = useState(false);
-	const [dutchPayAmount, setDutchPayAmount] = useState('');
+	const [dutchPayAmount, setDutchPayAmount] = useState(0);
 	const [dutchPayParticipants, setDutchPayParticipants] = useState(users.reduce((acc, user) => ({ ...acc, [user]: true }), {}));
 	const [titleSuggestions, setTitleSuggestions] = useState([]);
 
@@ -51,6 +51,24 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 	// 총액 계산
 	const calculateTotal = amounts => {
 		return Object.values(amounts).reduce((sum, amount) => sum + Number(amount || 0), 0);
+	};
+
+	// 숫자를 천 단위 콤마 포맷으로 변환
+	const formatNumber = value => {
+		if (!value && value !== 0) return '';
+		return Number(value).toLocaleString();
+	};
+
+	// 콤마가 포함된 문자열을 숫자로 변환
+	const parseNumber = value => {
+		if (!value && value !== 0) return 0;
+		// 숫자, 콤마, 마이너스 기호만 허용
+		const cleanValue = value
+			.toString()
+			.replace(/[^0-9,-]/g, '')
+			.replace(/,/g, '');
+		const numericValue = Number(cleanValue);
+		return isNaN(numericValue) ? 0 : numericValue;
 	};
 
 	// 사용자 금액 변경 처리
@@ -97,14 +115,14 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 		setIsDutchPay(!isDutchPay);
 		if (!isDutchPay) {
 			// 더치페이 모드로 전환
-			setDutchPayAmount('');
+			setDutchPayAmount(0);
 			setDutchPayParticipants(users.reduce((acc, user) => ({ ...acc, [user]: true }), {}));
 		}
 	};
 
 	// 더치페이 금액 분배
 	const applyDutchPay = () => {
-		const totalAmount = Number(dutchPayAmount || 0);
+		const totalAmount = dutchPayAmount;
 		const participants = Object.entries(dutchPayParticipants)
 			.filter(([, isParticipant]) => isParticipant)
 			.map(([user]) => user);
@@ -245,9 +263,12 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 					<div>
 						<label className="block mb-2 text-sm font-medium text-gray-300">총 금액</label>
 						<input
-							type="number"
-							value={dutchPayAmount}
-							onChange={e => setDutchPayAmount(e.target.value)}
+							type="text"
+							value={dutchPayAmount ? formatNumber(dutchPayAmount) : ''}
+							onChange={e => {
+								const numericValue = parseNumber(e.target.value);
+								setDutchPayAmount(numericValue);
+							}}
 							className="px-3 py-2 w-full text-white bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
 							placeholder="총 금액을 입력하세요"
 						/>
@@ -291,9 +312,12 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 								{user} {formData.payer === user && '(결제자)'}
 							</label>
 							<input
-								type="number"
-								value={formData.userAmounts[user] || ''}
-								onChange={e => handleUserAmountChange(user, e.target.value)}
+								type="text"
+								value={formData.userAmounts[user] ? formatNumber(formData.userAmounts[user]) : ''}
+								onChange={e => {
+									const numericValue = parseNumber(e.target.value);
+									handleUserAmountChange(user, numericValue);
+								}}
 								disabled={formData.payer === user}
 								className={`w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 ${
 									formData.payer === user ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-gray-800 text-white'
