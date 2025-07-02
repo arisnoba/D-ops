@@ -176,7 +176,7 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 
 				<div>
 					<label className="block mb-2 text-sm font-medium text-gray-300">지출 유형</label>
-					<div className="flex p-1 space-x-2 bg-gray-100 rounded-lg dark:bg-neutral-900">
+					<div className="flex p-1 space-x-2 bg-gray-100 rounded-lg dark:bg-neutral-800">
 						{['식대', '기타'].map(type => (
 							<button
 								key={type}
@@ -187,8 +187,8 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 										type: type,
 									}));
 								}}
-								className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
-									${formData.type === type ? 'bg-white dark:bg-neutral-950 shadow text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+								className={`px-3 h-10 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out
+									${formData.type === type ? 'bg-white dark:bg-neutral-950 shadow text-gray-900 dark:text-white w-full' : 'w-full text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}>
 								{type}
 							</button>
 						))}
