@@ -9,6 +9,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 	const [editingExpense, setEditingExpense] = useState(null);
 	const [formData, setFormData] = useState({
 		title: '',
+		payer: '',
 		userAmounts: users.reduce((acc, user) => ({ ...acc, [user]: 0 }), {}),
 		total: 0,
 	});
@@ -42,8 +43,37 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 	// 사용자 금액 변경 처리
 	const handleUserAmountChange = (user, amount) => {
 		const newAmounts = { ...formData.userAmounts, [user]: Number(amount || 0) };
+
+		// 결제자가 선택된 경우, 결제자 금액을 다른 금액들의 합의 음수로 설정
+		if (formData.payer && formData.payer !== user) {
+			const otherUsersTotal = Object.entries(newAmounts)
+				.filter(([u]) => u !== formData.payer)
+				.reduce((sum, [, amt]) => sum + amt, 0);
+			newAmounts[formData.payer] = -otherUsersTotal;
+		}
+
 		setFormData(prev => ({
 			...prev,
+			userAmounts: newAmounts,
+			total: calculateTotal(newAmounts),
+		}));
+	};
+
+	// 결제자 변경 처리
+	const handlePayerChange = payer => {
+		const newAmounts = { ...formData.userAmounts };
+
+		if (payer) {
+			// 결제자 금액을 다른 사용자들 금액의 합의 음수로 설정
+			const otherUsersTotal = Object.entries(newAmounts)
+				.filter(([user]) => user !== payer)
+				.reduce((sum, [, amount]) => sum + Number(amount || 0), 0);
+			newAmounts[payer] = -otherUsersTotal;
+		}
+
+		setFormData(prev => ({
+			...prev,
+			payer,
 			userAmounts: newAmounts,
 			total: calculateTotal(newAmounts),
 		}));
@@ -53,6 +83,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 	const resetForm = () => {
 		setFormData({
 			title: '',
+			payer: '',
 			userAmounts: users.reduce((acc, user) => ({ ...acc, [user]: 0 }), {}),
 			total: 0,
 		});
@@ -68,7 +99,8 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 			return;
 		}
 
-		if (formData.total === 0) {
+		// 총액이 0이어도 결제자가 지정되어 있으면 허용
+		if (formData.total === 0 && !formData.payer) {
 			alert('금액을 입력해주세요.');
 			return;
 		}
@@ -76,6 +108,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 		try {
 			const expenseData = {
 				title: formData.title.trim(),
+				payer: formData.payer || null,
 				user_amounts: formData.userAmounts,
 				total: formData.total,
 			};
@@ -107,6 +140,7 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 		setEditingExpense(expense);
 		setFormData({
 			title: expense.title,
+			payer: expense.payer || '',
 			userAmounts: expense.user_amounts,
 			total: expense.total,
 		});
@@ -157,7 +191,10 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 						{recurringExpenses.map(expense => (
 							<div key={expense.id} className="bg-gray-800 rounded-lg p-4 border border-gray-600">
 								<div className="flex justify-between items-start mb-3">
-									<h4 className="text-white font-medium">{expense.title}</h4>
+									<div>
+										<h4 className="text-white font-medium">{expense.title}</h4>
+										{expense.payer && <div className="text-sm text-blue-400 mt-1">결제자: {expense.payer}</div>}
+									</div>
 									<div className="flex space-x-2">
 										<button onClick={() => handleEdit(expense)} className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
 											수정
@@ -172,10 +209,15 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 								<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
 									{users.map(user => {
 										const amount = expense.user_amounts[user] || 0;
+										const isNegative = amount < 0;
+										const isPayer = expense.payer === user;
 										return (
 											<div key={user} className="text-center">
-												<div className="text-gray-400 text-sm">{user}</div>
-												<div className="text-green-400 font-medium">{amount.toLocaleString()}원</div>
+												<div className="text-gray-400 text-sm">
+													{user}
+													{isPayer && <span className="text-blue-400 ml-1">(결제자)</span>}
+												</div>
+												<div className={`font-medium ${isNegative ? 'text-red-400' : 'text-green-400'}`}>{amount.toLocaleString()}원</div>
 											</div>
 										);
 									})}
@@ -208,6 +250,22 @@ export default function RecurringExpenseModal({ isOpen, onClose, users, onUpdate
 									placeholder="고정비 제목을 입력하세요"
 									required
 								/>
+							</div>
+
+							{/* 결제자 선택 */}
+							<div>
+								<label className="block text-sm font-medium text-gray-300 mb-2">결제자 (선택사항)</label>
+								<select
+									value={formData.payer}
+									onChange={e => handlePayerChange(e.target.value)}
+									className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
+									<option value="">결제자 없음</option>
+									{users.map(user => (
+										<option key={user} value={user}>
+											{user}
+										</option>
+									))}
+								</select>
 							</div>
 
 							{/* 사용자별 금액 */}

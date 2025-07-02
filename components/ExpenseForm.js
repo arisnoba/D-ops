@@ -121,7 +121,7 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 
 	// 더치페이 금액 분배
 	const applyDutchPay = () => {
-		const amount = Number(dutchPayAmount || 0);
+		const totalAmount = Number(dutchPayAmount || 0);
 		const participants = Object.entries(dutchPayParticipants)
 			.filter(([, isParticipant]) => isParticipant)
 			.map(([user]) => user);
@@ -131,11 +131,16 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 			return;
 		}
 
-		const amountPerPerson = Math.floor(amount / participants.length);
+		const amountPerPerson = Math.floor(totalAmount / participants.length);
 		const newAmounts = users.reduce((acc, user) => {
 			acc[user] = participants.includes(user) ? amountPerPerson : 0;
 			return acc;
 		}, {});
+
+		// 결제자가 있는 경우: 결제자는 (개별 부담금 - 전체 결제금액)
+		if (formData.payer && participants.includes(formData.payer)) {
+			newAmounts[formData.payer] = amountPerPerson - totalAmount;
+		}
 
 		setFormData(prev => ({
 			...prev,
@@ -190,7 +195,8 @@ export default function ExpenseForm({ users, onSubmit, onCancel, initialData }) 
 			return;
 		}
 
-		if (formData.total === 0) {
+		// 총액이 0이어도 결제자가 지정되어 있으면 허용
+		if (formData.total === 0 && !formData.payer) {
 			alert('금액을 입력해주세요.');
 			return;
 		}

@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 
-export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPriceModalOpen }) {
+export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPriceModalOpen, setExpenseModalOpen, setRecurringModalOpen, setBirthdayModalOpen }) {
 	const router = useRouter();
 	const { user, logout } = useAuth();
 	const [showTaskActions, setShowTaskActions] = useState(false);
 	const [showClientActions, setShowClientActions] = useState(false);
+	const [showExpenseActions, setShowExpenseActions] = useState(false);
 	const [showSettings, setShowSettings] = useState(false);
 
 	useEffect(() => {
@@ -16,18 +17,28 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 		if (pathname === '/' || pathname === '/dashboard') {
 			setShowTaskActions(false);
 			setShowClientActions(false);
+			setShowExpenseActions(false);
 			setShowSettings(false);
 		}
 		// 운영 업무
 		else if (pathname.startsWith('/tasks')) {
 			setShowTaskActions(true);
 			setShowClientActions(false);
+			setShowExpenseActions(false);
 			setShowSettings(true);
 		}
 		// 클라이언트
 		else if (pathname.startsWith('/clients')) {
 			setShowTaskActions(false);
 			setShowClientActions(true);
+			setShowExpenseActions(false);
+			setShowSettings(false);
+		}
+		// 지출 관리
+		else if (pathname.startsWith('/expenses')) {
+			setShowTaskActions(false);
+			setShowClientActions(false);
+			setShowExpenseActions(true);
 			setShowSettings(false);
 		}
 	}, [router.pathname]);
@@ -106,7 +117,7 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 					</ul>
 				</div>
 
-				{(showTaskActions || showClientActions) && (
+				{(showTaskActions || showClientActions || showExpenseActions) && (
 					<div className="py-4 border-t border-gray-200 dark:border-dark-border">
 						<h3 className="px-4 mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">작업</h3>
 						<ul className="space-y-1">
@@ -133,6 +144,40 @@ export default function SideNav({ setClientModalOpen, setTaskModalOpen, setPrice
 										<span>클라이언트 등록</span>
 									</button>
 								</li>
+							)}
+							{showExpenseActions && (
+								<>
+									<li>
+										<button
+											onClick={() => setExpenseModalOpen && setExpenseModalOpen(true)}
+											className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+											<span className="mr-3">
+												<i className="text-xl fa-duotone fa-circle-plus"></i>
+											</span>
+											<span>지출 추가</span>
+										</button>
+									</li>
+									<li>
+										<button
+											onClick={() => setRecurringModalOpen && setRecurringModalOpen(true)}
+											className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+											<span className="mr-3">
+												<i className="text-xl fa-duotone fa-rotate"></i>
+											</span>
+											<span>고정비 관리</span>
+										</button>
+									</li>
+									<li>
+										<button
+											onClick={() => setBirthdayModalOpen && setBirthdayModalOpen(true)}
+											className="flex items-center px-4 py-2 w-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-border/50">
+											<span className="mr-3">
+												<i className="text-xl fa-duotone fa-cake-candles"></i>
+											</span>
+											<span>생일 설정</span>
+										</button>
+									</li>
+								</>
 							)}
 						</ul>
 					</div>

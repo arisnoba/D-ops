@@ -7,11 +7,19 @@ import SideNav from './SideNav';
 import Modal from './Modal';
 import ClientForm from './ClientForm';
 import TaskForm from './TaskForm';
+import ExpenseForm from './ExpenseForm';
+import RecurringExpenseModal from './RecurringExpenseModal';
+import BirthdaySettingsModal from './BirthdaySettingsModal';
+
+const USERS = ['유재욱', '신성원', '김정현', '김정민', '권순신'];
 
 export default function Layout({ children }) {
 	const [clientModalOpen, setClientModalOpen] = useState(false);
 	const [taskModalOpen, setTaskModalOpen] = useState(false);
 	const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+	const [expenseModalOpen, setExpenseModalOpen] = useState(false);
+	const [recurringModalOpen, setRecurringModalOpen] = useState(false);
+	const [birthdayModalOpen, setBirthdayModalOpen] = useState(false);
 	const router = useRouter();
 
 	const handleSignOut = async () => {
@@ -46,9 +54,33 @@ export default function Layout({ children }) {
 		}
 	};
 
+	const handleExpenseSuccess = () => {
+		setExpenseModalOpen(false);
+		// 지출 페이지에서 업데이트 이벤트 발생
+		if (router.pathname === '/expenses') {
+			window.dispatchEvent(new CustomEvent('updateExpenses'));
+		} else {
+			router.push('/expenses');
+		}
+	};
+
+	const handleRecurringUpdate = () => {
+		// 고정비 관리는 모달 내에서 자체적으로 관리
+		if (router.pathname === '/expenses') {
+			window.dispatchEvent(new CustomEvent('updateExpenses'));
+		}
+	};
+
 	return (
 		<div className="flex h-screen bg-gray-50 dark:bg-[#121212] overflow-auto">
-			<SideNav setClientModalOpen={setClientModalOpen} setTaskModalOpen={setTaskModalOpen} setPriceModalOpen={setIsPriceModalOpen} />
+			<SideNav
+				setClientModalOpen={setClientModalOpen}
+				setTaskModalOpen={setTaskModalOpen}
+				setPriceModalOpen={setIsPriceModalOpen}
+				setExpenseModalOpen={setExpenseModalOpen}
+				setRecurringModalOpen={setRecurringModalOpen}
+				setBirthdayModalOpen={setBirthdayModalOpen}
+			/>
 			<div className="flex-1 ml-48">
 				<main className="h-screen">{children}</main>
 			</div>
@@ -72,6 +104,19 @@ export default function Layout({ children }) {
 
 			{/* 단가 설정 모달 */}
 			<PriceSettingModal isOpen={isPriceModalOpen} onClose={() => setIsPriceModalOpen(false)} />
+
+			{/* 지출 추가 모달 */}
+			{expenseModalOpen && (
+				<Modal isOpen={expenseModalOpen} onClose={() => setExpenseModalOpen(false)} title="지출 추가">
+					<ExpenseForm users={USERS} onSubmit={handleExpenseSuccess} onCancel={() => setExpenseModalOpen(false)} />
+				</Modal>
+			)}
+
+			{/* 고정비 관리 모달 */}
+			{recurringModalOpen && <RecurringExpenseModal isOpen={recurringModalOpen} onClose={() => setRecurringModalOpen(false)} users={USERS} onUpdate={handleRecurringUpdate} />}
+
+			{/* 생일 설정 모달 */}
+			{birthdayModalOpen && <BirthdaySettingsModal isOpen={birthdayModalOpen} onClose={() => setBirthdayModalOpen(false)} users={USERS} />}
 		</div>
 	);
 }

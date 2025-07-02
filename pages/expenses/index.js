@@ -19,13 +19,74 @@ export default function Expenses() {
 	const [showBirthdayModal, setShowBirthdayModal] = useState(false);
 	const [editingExpense, setEditingExpense] = useState(null);
 
-	// 지출 내역 로드
+	// 지출 내역 로드 (고정비 포함)
 	const loadExpenses = async () => {
 		try {
-			const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false }).order('created_at', { ascending: false });
+			// 일반 지출 데이터 로드
+			const { data: expensesData, error: expensesError } = await supabase.from('expenses').select('*').order('date', { ascending: false }).order('created_at', { ascending: false });
 
-			if (error) throw error;
-			setExpenses(data || []);
+			if (expensesError) throw expensesError;
+
+			// 고정비 데이터 로드
+			const { data: recurringData, error: recurringError } = await supabase.from('recurring_expenses').select('*').eq('is_active', true);
+
+			if (recurringError) throw recurringError;
+
+			// 생일 설정 데이터 로드
+			const { data: birthdayData, error: birthdayError } = await supabase.from('birthday_settings').select('*');
+
+			if (birthdayError) throw birthdayError;
+
+			// 고정비를 매달 지출 목록에 추가 (현재 월 기준)
+			const recurringExpenses = (recurringData || []).map(recurring => ({
+				id: `recurring_${recurring.id}`,
+				date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`,
+				type: '고정',
+				title: recurring.title,
+				payer: recurring.payer,
+				user_amounts: recurring.user_amounts,
+				total: recurring.total,
+				created_at: recurring.created_at,
+				isRecurring: true, // 고정비 구분용
+				originalId: recurring.id,
+			}));
+
+			// 해당 월에 생일이 있는 사용자들의 생일 축하금 추가
+			const birthdayExpenses = (birthdayData || [])
+				.filter(birthday => birthday.birth_month === selectedMonth)
+				.map(birthday => {
+					const birthdayUser = birthday.user_name;
+					const totalAmount = birthday.amount;
+					const otherUsers = USERS.filter(user => user !== birthdayUser);
+					const amountPerPerson = Math.round(totalAmount / otherUsers.length);
+
+					// 생일자는 받는 금액(음수), 나머지는 내는 금액(양수)
+					const userAmounts = USERS.reduce((acc, user) => {
+						if (user === birthdayUser) {
+							acc[user] = -totalAmount;
+						} else {
+							acc[user] = amountPerPerson;
+						}
+						return acc;
+					}, {});
+
+					return {
+						id: `birthday_${birthday.id}`,
+						date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(birthday.birth_day).padStart(2, '0')}`,
+						type: '생일',
+						title: `${birthdayUser} 생일 축하금`,
+						payer: null,
+						user_amounts: userAmounts,
+						total: 0, // 생일 축하금은 총액이 0 (받는 사람과 주는 사람들의 합)
+						created_at: birthday.created_at,
+						isBirthday: true, // 생일 구분용
+						originalId: birthday.id,
+					};
+				});
+
+			// 일반 지출, 고정비, 생일 축하금 합치기
+			const allExpenses = [...(expensesData || []), ...recurringExpenses, ...birthdayExpenses];
+			setExpenses(allExpenses);
 		} catch (error) {
 			console.error('지출 내역 로드 실패:', error);
 		}
@@ -40,7 +101,7 @@ export default function Expenses() {
 			};
 			initializeData();
 		}
-	}, [user]);
+	}, [user, selectedYear, selectedMonth]);
 
 	// 월별 필터링된 지출 내역
 	const filteredExpenses = expenses.filter(expense => {
@@ -173,7 +234,7 @@ export default function Expenses() {
 			{/* 헤더 */}
 			<div className="flex flex-col gap-4 justify-between items-start">
 				<div>
-					<h1 className="text-2xl font-bold text-white">Bob 지출 관리</h1>
+					<h1 className="text-2xl font-bold text-white">지출 관리</h1>
 					<p className="mt-1 text-gray-400">공동 지출 내역 관리</p>
 				</div>
 
@@ -239,7 +300,7 @@ export default function Expenses() {
 			</div>
 
 			{/* 사용자별 총액 */}
-			<div className="p-6 bg-gray-800 rounded-lg">
+			{/* <div className="p-6 bg-gray-800 rounded-lg">
 				<h3 className="mb-4 text-lg font-semibold text-white">사용자별 정산</h3>
 				<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
 					{USERS.map(user => (
@@ -253,13 +314,13 @@ export default function Expenses() {
 					<div className="text-sm text-gray-400">전체 총액</div>
 					<div className="text-xl font-bold text-white">{grandTotal.toLocaleString()}원</div>
 				</div>
-			</div>
+			</div> */}
 
 			{/* 지출 목록 */}
 			<div className="overflow-hidden bg-gray-800 rounded-lg">
 				<div className="overflow-x-auto">
 					<table className="w-full">
-						<thead className="bg-gray-700">
+						<thead>
 							<tr>
 								<th className="px-4 py-3 text-left text-sm font-medium text-gray-300 min-w-[80px]">날짜</th>
 								<th className="px-4 py-3 text-left text-sm font-medium text-gray-300 min-w-[60px]">타입</th>
@@ -296,11 +357,7 @@ export default function Expenses() {
 										const amount = expense.user_amounts[user] || 0;
 										return (
 											<td key={user} className="px-4 py-3 text-sm text-right">
-												{amount === 0 ? (
-													<span className="text-gray-500">-</span>
-												) : (
-													<span className={amount < 0 ? 'text-red-400 font-medium' : 'text-green-400 font-medium'}>{amount.toLocaleString()}</span>
-												)}
+												{amount === 0 ? <span className="text-gray-500">-</span> : <span className={amount < 0 ? 'text-red-400 ' : 'text-gray-300'}>{amount.toLocaleString()}</span>}
 											</td>
 										);
 									})}
@@ -310,31 +367,43 @@ export default function Expenses() {
 
 									{/* 작업 버튼 */}
 									<td className="px-4 py-3 text-center">
-										<div className="flex justify-center space-x-2">
-											<button onClick={() => handleExpenseEdit(expense)} className="px-2 py-1 text-xs text-white bg-blue-600 rounded transition-colors hover:bg-blue-700">
-												수정
-											</button>
-											<button onClick={() => handleExpenseDelete(expense.id, expense.type)} className="px-2 py-1 text-xs text-white bg-red-600 rounded transition-colors hover:bg-red-700">
-												삭제
-											</button>
-										</div>
+										{expense.isRecurring ? (
+											<div className="flex justify-center">
+												<span className="px-2 py-1 text-xs text-gray-400 bg-gray-700 rounded">고정비</span>
+											</div>
+										) : expense.isBirthday ? (
+											<div className="flex justify-center">
+												<span className="px-2 py-1 text-xs text-gray-400 bg-gray-700 rounded">자동 생일</span>
+											</div>
+										) : (
+											<div className="flex justify-center space-x-2">
+												<button onClick={() => handleExpenseEdit(expense)} className="px-2 py-1 text-xs text-white bg-blue-600 rounded transition-colors hover:bg-blue-700">
+													수정
+												</button>
+												<button
+													onClick={() => handleExpenseDelete(expense.id, expense.type)}
+													className="px-2 py-1 text-xs text-white bg-red-600 rounded transition-colors hover:bg-red-700">
+													삭제
+												</button>
+											</div>
+										)}
 									</td>
 								</tr>
 							))}
 						</tbody>
 
 						{/* 총계 행 */}
-						<tfoot className="bg-gray-900">
-							<tr className="font-semibold">
+						<tfoot className="bg-gray-700">
+							<tr>
 								<td className="px-4 py-4 text-white" colSpan="3">
 									총계
 								</td>
 								{USERS.map(user => (
 									<td key={user} className="px-4 py-4 text-right">
-										<span className={userTotals[user] < 0 ? 'text-red-400 font-bold' : 'text-green-400 font-bold'}>{userTotals[user].toLocaleString()}</span>
+										<span className={userTotals[user] < 0 ? 'text-red-400' : 'text-gray-200'}>{userTotals[user].toLocaleString()}</span>
 									</td>
 								))}
-								<td className="px-4 py-4 font-bold text-right text-white">{grandTotal.toLocaleString()}</td>
+								<td className="px-4 py-4 text-right text-white">{grandTotal.toLocaleString()}</td>
 								<td className="px-4 py-4"></td>
 							</tr>
 						</tfoot>
